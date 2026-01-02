@@ -1,0 +1,24 @@
+﻿@model TaskManagementSystem.Models.TaskItem
+
+@{
+    ViewData["Title"] = "Task Details";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="mb-3">
+    <strong>Title:</strong> @Model.Title
+</div>
+<div class="mb-3">
+    <strong>Description:</strong> @Model.Description
+</div>
+@if (!string.IsNullOrEmpty(Model.ImagePath))
+{
+    <div class="mb-3">
+        <img src="@Model.ImagePath" width="200" />
+    </div>
+}
+<div class="mb-3">
+    <strong>Created At:</strong> @Model.CreatedAt.ToString("dd-MMM-yyyy HH:mm")
+</div>
+<a asp-action="Index" class="btn btn-secondary">Back</a>

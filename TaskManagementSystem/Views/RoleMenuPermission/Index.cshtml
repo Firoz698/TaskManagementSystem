@@ -1,0 +1,329 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Permission.RoleMenuPermission>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+
+@{
+    ViewData["Title"] = "User Menu Permissions";
+    var selectedUserId = ViewBag.SelectedUserId as int?;
+    var selectedUserRole = ViewBag.SelectedUserRole as string;
+    
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "RoleMenuPermission");
+
+    bool canView = permission?.CanView ?? false;
+    bool canCreate = permission?.CanCreate ?? false;
+    bool canEdit = permission?.CanEdit ?? false;
+    bool canDelete = permission?.CanDelete ?? false;
+}
+
+@if (!canView)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> You don't have permission to view user menu permissions.
+    </div>
+    return;
+}
+
+<div class="container-fluid px-2 px-md-4">
+    <!-- User Selection Form -->
+    <form method="get" asp-action="Index" class="mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-5 col-lg-4">
+                        <label for="userId" class="form-label fw-bold">
+                            <i class="bi bi-person"></i> Select User:
+                        </label>
+                        <select id="userId" name="userId" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- Select User --</option>
+                            @foreach (var user in ViewBag.Users)
+                            {
+                                <option value="@user.Id" selected>@user.UserName</option>
+                            }
+                        </select>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(selectedUserRole))
+                    {
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <div class="alert alert-info mb-0 py-2">
+                                <strong><i class="bi bi-shield-check"></i> Role:</strong> @selectedUserRole
+                            </div>
+                        </div>
+                    }
+
+                    @if (selectedUserId.HasValue && canCreate)
+                    {
+                        <div class="col-12 col-md-3 col-lg-auto ms-lg-auto">
+                            <a asp-action="Create" asp-route-userId="@selectedUserId" class="btn btn-success w-100">
+                                <i class="bi bi-plus-circle"></i> Add Permission
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @if (selectedUserId.HasValue && Model != null && Model.Any())
+    {
+        <form method="post" asp-action="UpdatePermissions" id="permissionsForm">
+            <input type="hidden" name="userId" value="@selectedUserId" />
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Desktop Table View -->
+                    <div class="table-responsive d-none d-lg-block">
+                        <table class="table table-bordered table-striped table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 40%;">Menu</th>
+                                    <th class="text-center" style="width: 15%;">
+                                        <i class="bi bi-eye"></i> Can View
+                                    </th>
+                                    <th class="text-center" style="width: 15%;">
+                                        <i class="bi bi-plus-circle"></i> Can Create
+                                    </th>
+                                    <th class="text-center" style="width: 15%;">
+                                        <i class="bi bi-pencil"></i> Can Edit
+                                    </th>
+                                    <th class="text-center" style="width: 15%;">
+                                        <i class="bi bi-trash"></i> Can Delete
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Count(); i++)
+                                {
+                                    var item = Model.ElementAt(i);
+                                    <tr>
+                                        <td>
+                                            <strong>@item.Menu?.Title</strong>
+                                            <input type="hidden" name="Permissions[@i].Id" value="@item.Id" />
+                                            <input type="hidden" name="Permissions[@i].RoleId" value="@item.RoleId" />
+                                            <input type="hidden" name="Permissions[@i].MenuId" value="@item.MenuId" />
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check d-inline-block">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       name="Permissions[@i].CanView" 
+                                                       value="true" 
+                                                       @(item.CanView ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check d-inline-block">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       name="Permissions[@i].CanCreate" 
+                                                       value="true" 
+                                                       @(item.CanCreate ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check d-inline-block">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       name="Permissions[@i].CanEdit" 
+                                                       value="true" 
+                                                       @(item.CanEdit ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check d-inline-block">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       name="Permissions[@i].CanDelete" 
+                                                       value="true" 
+                                                       @(item.CanDelete ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile/Tablet Card View -->
+                    <div class="d-lg-none">
+                        @for (int i = 0; i < Model.Count(); i++)
+                        {
+                            var item = Model.ElementAt(i);
+                            <div class="card mb-3 border">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-menu-button"></i> <strong>@item.Menu?.Title</strong>
+                                    </h6>
+                                    <input type="hidden" name="Permissions[@i].Id" value="@item.Id" />
+                                    <input type="hidden" name="Permissions[@i].RoleId" value="@item.RoleId" />
+                                    <input type="hidden" name="Permissions[@i].MenuId" value="@item.MenuId" />
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       role="switch"
+                                                       id="view_@i"
+                                                       name="Permissions[@i].CanView" 
+                                                       value="true" 
+                                                       @(item.CanView ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                                <label class="form-check-label" for="view_@i">
+                                                    <i class="bi bi-eye text-primary"></i> Can View
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       role="switch"
+                                                       id="create_@i"
+                                                       name="Permissions[@i].CanCreate" 
+                                                       value="true" 
+                                                       @(item.CanCreate ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                                <label class="form-check-label" for="create_@i">
+                                                    <i class="bi bi-plus-circle text-success"></i> Can Create
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       role="switch"
+                                                       id="edit_@i"
+                                                       name="Permissions[@i].CanEdit" 
+                                                       value="true" 
+                                                       @(item.CanEdit ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                                <label class="form-check-label" for="edit_@i">
+                                                    <i class="bi bi-pencil text-warning"></i> Can Edit
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       role="switch"
+                                                       id="delete_@i"
+                                                       name="Permissions[@i].CanDelete" 
+                                                       value="true" 
+                                                       @(item.CanDelete ? "checked" : "")
+                                                       @(!canEdit ? "disabled" : "") />
+                                                <label class="form-check-label" for="delete_@i">
+                                                    <i class="bi bi-trash text-danger"></i> Can Delete
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (canEdit)
+                    {
+                        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="selectAll">
+                                    <i class="bi bi-check-all"></i> Select All
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAll">
+                                    <i class="bi bi-x-lg"></i> Deselect All
+                                </button>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 w-sm-auto">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <i class="bi bi-info-circle"></i> You don't have permission to edit these settings.
+                        </div>
+                    }
+                </div>
+            </div>
+        </form>
+    }
+    else if (selectedUserId.HasValue && (Model == null || !Model.Any()))
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> No permissions found for this user. Click "Add Permission" to create new permissions.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary text-center">
+            <i class="bi bi-arrow-up-circle"></i> Please select a user to view their menu permissions.
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Select All checkboxes
+            $('#selectAll').on('click', function() {
+                $('#permissionsForm input[type="checkbox"]:not(:disabled)').prop('checked', true);
+            });
+
+            // Deselect All checkboxes
+            $('#deselectAll').on('click', function() {
+                $('#permissionsForm input[type="checkbox"]:not(:disabled)').prop('checked', false);
+            });
+
+            // Form submission confirmation
+            $('#permissionsForm').on('submit', function(e) {
+                if (!confirm('Are you sure you want to save these permission changes?')) {
+                    e.preventDefault();
+                }
+            });
+
+            // Auto-submit user selection with loading indicator
+            $('#userId').on('change', function() {
+                if ($(this).val()) {
+                    $(this).closest('form').find('.card-body').append(
+                        '<div class="text-center mt-2 loading-indicator">' +
+                        '<div class="spinner-border spinner-border-sm text-primary" role="status">' +
+                        '<span class="visually-hidden">Loading...</span></div> Loading permissions...</div>'
+                    );
+                }
+            });
+        });
+    </script>
+
+    <style>
+        /* Enhanced checkbox styling */
+        .form-check-input {
+            cursor: pointer;
+            width: 1.2em;
+            height: 1.2em;
+        }
+
+        .form-check-input:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Card hover effect for mobile view */
+        .d-lg-none .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .d-lg-none .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Table row hover effect */
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+    </style>
+}

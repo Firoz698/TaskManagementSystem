@@ -1,0 +1,483 @@
+﻿@model TaskManagementSystem.Models.EmployeeListViewModel
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+@{
+    ViewData["Title"] = "Employee List";
+    var pageSizeOptions = new List<int> { 3, 5, 10, 15, 20 };
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Employee");
+    bool canView = permission?.CanView ?? false;
+    bool canCreate = permission?.CanCreate ?? false;
+    bool canEdit = permission?.CanEdit ?? false;
+    bool canDelete = permission?.CanDelete ?? false;
+}
+
+<style>
+    /* Mobile-first responsive utilities */
+    .responsive-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .responsive-card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+    /* Mobile table alternative - Card view */
+    .employee-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+        .employee-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+    .employee-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .employee-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+
+    .employee-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+        .employee-info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        color: #2c3e50;
+        text-align: right;
+        font-size: 0.875rem;
+    }
+
+    /* Responsive filters */
+    .filter-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* Action buttons styling */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+        .action-buttons .btn {
+            min-width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    /* Desktop table styles */
+    .desktop-table {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .desktop-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .desktop-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            .desktop-table tbody tr:hover {
+                background-color: #f8f9fa;
+                transform: scale(1.01);
+            }
+
+    /* Pagination responsive */
+    .pagination-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    @@media (min-width: 768px) {
+        .pagination-wrapper {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .page-item {
+        margin: 0.125rem;
+    }
+
+    /* Hide/show based on screen size */
+    .mobile-only {
+        display: block;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+
+    @@media (min-width: 992px) {
+        .mobile-only {
+            display: none;
+        }
+
+        .desktop-only {
+            display: block;
+        }
+    }
+
+    /* Header responsive */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .page-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+    @@media (min-width: 768px) {
+        .page-header h2 {
+            font-size: 2rem;
+            margin-bottom: 0;
+        }
+    }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    @@media (min-width: 768px) {
+        .header-content {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+
+    /* Badge styling */
+    .employee-badge {
+        display: inline-block;
+        padding: 0.35rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .badge-department {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .badge-type {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+    }
+</style>
+
+<div class="container-fluid mt-3 px-2 px-md-3">
+    <!-- Page Header -->
+    <div class="page-header shadow-sm">
+        <div class="header-content">
+            <div>
+                <h2 class="mb-0"><i class="bi bi-people-fill"></i> @ViewData["Title"]</h2>
+                <small class="d-block mt-2 opacity-75">Manage your employee records</small>
+            </div>
+            @if (canCreate)
+            {
+                <a class="btn btn-light btn-lg shadow-sm" asp-action="Create">
+                    <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Create New</span>
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filter Section -->
+    <div class="card mb-4 shadow-sm responsive-card">
+        <div class="card-header filter-section text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Employees</h5>
+                <span class="badge bg-light text-dark">Total: @Model.Total</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-controller="Employee" asp-action="List" class="row g-3">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label asp-for="SearchTerm" class="form-label"><i class="bi bi-search"></i> Search</label>
+                    <input asp-for="SearchTerm" class="form-control" placeholder="Type name..." />
+                </div>
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label asp-for="SelectedDepartmentId" class="form-label"><i class="bi bi-building"></i> Department</label>
+                    <select asp-for="SelectedDepartmentId" asp-items="@(new SelectList(Model.Departments, "Id", "Name"))" class="form-select">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-2">
+                    <label asp-for="SelectedEmployeeTypeId" class="form-label"><i class="bi bi-person-badge"></i> Type</label>
+                    <select asp-for="SelectedEmployeeTypeId" asp-items="@(new SelectList(Model.EmployeeTypes, "Id", "Name"))" class="form-select">
+                        <option value="">All Types</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-2">
+                    <label asp-for="PageSize" class="form-label"><i class="bi bi-list-ol"></i> Per Page</label>
+                    <select asp-for="PageSize" asp-items="@(new SelectList(pageSizeOptions))" class="form-select" onchange="this.form.submit();">
+                        <option value="">Select</option>
+                    </select>
+                </div>
+                <div class="col-12 col-lg-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter"></i> Apply Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="desktop-only">
+        <div class="card shadow-sm responsive-card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 desktop-table">
+                    <thead>
+                        <tr>
+                            <th><i class="bi bi-person"></i> Name</th>
+                            <th><i class="bi bi-envelope"></i> Email</th>
+                            <th><i class="bi bi-award"></i> Designation</th>
+                            <th><i class="bi bi-building"></i> Department</th>
+                            <th><i class="bi bi-gender-ambiguous"></i> Gender</th>
+                            <th><i class="bi bi-person-badge"></i> Type</th>
+                            <th class="text-center"><i class="bi bi-gear"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Employees != null && Model.Employees.Count > 0)
+                        {
+                            foreach (var employee in Model.Employees)
+                            {
+                                <tr>
+                                    <td><strong>@employee.FullName</strong></td>
+                                    <td>@employee.Email</td>
+                                    <td>@employee.Designation?.Name</td>
+                                    <td><span class="employee-badge badge-department">@employee.Department?.Name</span></td>
+                                    <td>@employee.Gender</td>
+                                    <td><span class="employee-badge badge-type">@employee.EmployeeType?.Name</span></td>
+                                    <td>
+                                        <div class="action-buttons justify-content-center">
+                                            @if (canView)
+                                            {
+                                                <a class="btn btn-sm btn-info" asp-controller="Employee" asp-action="Details" asp-route-id="@employee.Id" title="Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            }
+                                            @if (canEdit)
+                                            {
+                                                <a class="btn btn-sm btn-warning" asp-controller="Employee" asp-action="Update" asp-route-id="@employee.Id" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            }
+                                            @if (canDelete)
+                                            {
+                                                <a class="btn btn-sm btn-danger" asp-controller="Employee" asp-action="Delete" asp-route-id="@employee.Id" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                                    <p class="mt-3 mb-0">No employees found.</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="mobile-only">
+        @if (Model.Employees != null && Model.Employees.Count > 0)
+        {
+            foreach (var employee in Model.Employees)
+            {
+                <div class="employee-card">
+                    <div class="employee-card-header">
+                        <div>
+                            <div class="employee-name">@employee.FullName</div>
+                            <small class="text-muted">@employee.Email</small>
+                        </div>
+                        <div class="action-buttons">
+                            @if (canView)
+                            {
+                                <a class="btn btn-sm btn-info" asp-controller="Employee" asp-action="Details" asp-route-id="@employee.Id" title="Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            }
+                            @if (canEdit)
+                            {
+                                <a class="btn btn-sm btn-warning" asp-controller="Employee" asp-action="Update" asp-route-id="@employee.Id" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            }
+                            @if (canDelete)
+                            {
+                                <a class="btn btn-sm btn-danger" asp-controller="Employee" asp-action="Delete" asp-route-id="@employee.Id" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    <div class="employee-info-row">
+                        <span class="info-label"><i class="bi bi-award"></i> Designation:</span>
+                        <span class="info-value">@employee.Designation?.Name</span>
+                    </div>
+                    <div class="employee-info-row">
+                        <span class="info-label"><i class="bi bi-building"></i> Department:</span>
+                        <span class="info-value"><span class="employee-badge badge-department">@employee.Department?.Name</span></span>
+                    </div>
+                    <div class="employee-info-row">
+                        <span class="info-label"><i class="bi bi-gender-ambiguous"></i> Gender:</span>
+                        <span class="info-value">@employee.Gender</span>
+                    </div>
+                    <div class="employee-info-row">
+                        <span class="info-label"><i class="bi bi-person-badge"></i> Type:</span>
+                        <span class="info-value"><span class="employee-badge badge-type">@employee.EmployeeType?.Name</span></span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                <p class="mt-3 text-muted">No employees found.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Employee List Pagination" class="mt-4">
+        <div class="pagination-wrapper">
+            <div class="text-center text-md-start">
+                @if (Model != null && Model.Employees != null && Model.Employees.Count > 0)
+                {
+                    var start = ((Model.PageNumber - 1) * Model.PageSize) + 1;
+                    var end = start + Model.Employees.Count - 1;
+                    <span class="text-muted">Showing <strong>@start - @end</strong> of <strong>@Model.Total</strong> employees</span>
+                }
+            </div>
+
+            <ul class="pagination justify-content-center justify-content-md-end mb-0">
+                <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("List", "Employee", GetRouteValuesForPage(1))">
+                        <i class="bi bi-chevron-bar-left"></i>
+                    </a>
+                </li>
+                <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("List", "Employee", GetRouteValuesForPage(Model.PageNumber - 1))">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                @{
+                    int maxPagesToShow = 4;
+                    int startPage = Math.Max(Model.PageNumber - 1, 1);
+                    int endPage = Math.Min(startPage + maxPagesToShow - 1, Model.TotalPages);
+                    if (endPage - startPage + 1 < maxPagesToShow)
+                    {
+                        startPage = Math.Max(endPage - maxPagesToShow + 1, 1);
+                    }
+                }
+
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("List", "Employee", GetRouteValuesForPage(i))">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("List", "Employee", GetRouteValuesForPage(Model.PageNumber + 1))">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("List", "Employee", GetRouteValuesForPage(Model.TotalPages))">
+                        <i class="bi bi-chevron-bar-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>
+
+@functions {
+    private object GetRouteValuesForPage(int pageNumber)
+    {
+        return new
+        {
+            SearchTerm = Model.SearchTerm,
+            departmentId = Model.SelectedDepartmentId,
+            employeeTypeId = Model.SelectedEmployeeTypeId,
+            PageSize = Model.PageSize,
+            PageNumber = pageNumber
+        };
+    }
+}

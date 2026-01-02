@@ -1,0 +1,66 @@
+﻿@model TaskManagementSystem.Models.Employee
+@{
+    ViewData["Title"] = "Delete Employee";
+}
+<div class="container mt-1">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 border rounded">
+                    <div class="text-center mb-4">
+                        <h2 class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> Confirm Delete</h2>
+                        <p class="lead">Are you sure you want to delete the following employee?</p>
+                        <h3 class="text-primary">@Model.FullName</h3>
+                    </div>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th class="text-muted text-start" style="width: 30%;">📧 Email:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.Email</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">💼 Designation:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.Designation?.Name</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">🏢 Department:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.Department?.Name</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">🗓️ Hire Date:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.HireDate.ToString("MMMM dd, yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">🎂 Date of Birth:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.DateOfBirth.ToString("MMMM dd, yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">👔 Employee Type:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.EmployeeType?.Name</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">⚧ Gender:</th>
+                                    <td class="fw-bold text-dark text-start">@Model.Gender</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted text-start">💰 Salary:</th>
+                                    <td class="fw-bold text-dark text-start">$@Model.Salary.ToString("N2")</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <form asp-action="Delete" method="post" class="text-center">
+                        <input type="hidden" asp-for="Id" />
+                        <button type="submit" class="btn btn-danger btn-lg me-3">
+                            <i class="bi bi-trash-fill"></i> Delete
+                        </button>
+                        <a asp-action="List" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-arrow-left-circle-fill"></i> Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

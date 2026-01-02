@@ -1,0 +1,141 @@
+﻿@{
+    ViewData["Title"] = "Login - Task Management System";
+}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .login-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        width: 360px;
+        padding: 40px 30px;
+        text-align: center;
+    }
+
+    .login-logo {
+        width: 280px;
+        margin-bottom: 15px;
+    }
+
+    .system-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0d6efd;
+        margin-bottom: 3px;
+    }
+
+        .system-name span {
+            color: #28a745;
+        }
+
+    .developed-by {
+        font-size: 13px;
+        color: #198754;
+        margin-bottom: 25px;
+    }
+
+    .login-header {
+        font-weight: 600;
+        color: #212529;
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        font-size: 14px;
+        color: #495057;
+    }
+
+    .form-control {
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .btn-login {
+        background-color: #0d6efd;
+        border: none;
+        border-radius: 6px;
+        color: #fff;
+        font-weight: 600;
+        width: 100%;
+        padding: 10px;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+        .btn-login:hover {
+            background-color: #0b5ed7;
+        }
+
+    .alert {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <img src="~/Logo/logo.jpg" alt="Task Management Logo" class="login-logo" />
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @ViewBag.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- 🔹 Login Form -->
+        <form asp-action="Login" method="post" class="needs-validation" novalidate>
+            <div class="mb-3 text-start">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required />
+                <div class="invalid-feedback">
+                    Please enter your username.
+                </div>
+            </div>
+
+            <div class="mb-3 text-start">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required />
+                <div class="invalid-feedback">
+                    Please enter your password.
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Bootstrap 5 client-side validation
+        (function () {
+            'use strict';
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+}

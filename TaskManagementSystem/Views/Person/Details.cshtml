@@ -1,0 +1,14 @@
+﻿@model TaskManagementSystem.Models.Person
+
+<h2>Person Details</h2>
+
+<div>
+    <h4>@Model.Name</h4>
+    <p>Created At: @Model.CreatedAt.ToString("yyyy-MM-dd")</p>
+    <p>Created By: @Model.CreatedByUserName</p>
+    <p>Is Active: @Model.IsActive</p>
+    <p>Address: @Model.Address</p>
+    <p>Mobile Number: @Model.Phone</p>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>

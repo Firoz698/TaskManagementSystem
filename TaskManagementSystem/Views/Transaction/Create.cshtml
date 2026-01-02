@@ -1,0 +1,155 @@
+﻿@model TaskManagementSystem.Models.Transaction
+
+@{
+    ViewData["Title"] = "Add Transaction";
+}
+<style>
+    .addperson{
+        height: 41px;
+        width: 157px;
+    }
+</style>
+
+
+<h2 class="text-primary mb-3">Add Transaction</h2>
+
+<form asp-action="Create" method="post" id="transactionForm">
+    <div class="mb-3">
+        <label class="form-label">Person</label>
+        <div class="d-flex gap-2">
+            <select asp-for="PersonId" class="form-select" id="PersonId">
+                <option value="">-- Select Person --</option>
+                @if (ViewBag.Persons != null && ((List<TaskManagementSystem.Models.Person>)ViewBag.Persons).Any())
+                {
+                    foreach (var person in ViewBag.Persons)
+                    {
+                        <option value="@person.Id">@person.Name</option>
+                    }
+                }
+            </select>
+
+            <button type="button" class="addperson btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPersonModal">
+                Add Person
+            </button>
+        </div>
+        <span asp-validation-for="PersonId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Type</label>
+        <select asp-for="Type" class="form-select">
+            <option value="">-- Select Type --</option>
+            <option value="Given">Given (তুমি টাকা দিয়েছো)</option>
+            <option value="Received">Received (তুমি টাকা পেয়েছো)</option>
+            <option value="Loan">Loan (ধার)</option>
+        </select>
+        <span asp-validation-for="Type" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Amount</label>
+        <input asp-for="Amount" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Date</label>
+        <input asp-for="Date" type="date" class="form-control" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>
+
+<!-- 🔹 Add Person Modal -->
+<div class="modal fade" id="addPersonModal" tabindex="-1" aria-labelledby="addPersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addPersonForm">
+                @* Anti-forgery token *@
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPersonModalLabel">Add Person</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Name</label>
+                        <input type="text" class="form-control" id="PersonName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Address</label>
+                        <input type="text" class="form-control" id="PersonAddress" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Phone</label>
+                        <input type="text" class="form-control" id="PersonPhone" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Person</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+
+            $("#addPersonForm").submit(function(e) {
+                e.preventDefault();
+
+                var token = $('input[name="__RequestVerificationToken"]').val(); // Anti-forgery token
+
+                var personData = {
+                    Name: $("#PersonName").val(),
+                    Address: $("#PersonAddress").val(),
+                    Phone: $("#PersonPhone").val()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("CreateAjax", "Person")',
+                    type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    data: personData,
+                    success: function(result) {
+                        // Close modal using Bootstrap 5 JS API
+                        var modalEl = document.getElementById('addPersonModal');
+                        var modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+
+                        // Clear input
+                        $("#PersonName, #PersonAddress, #PersonPhone").val('');
+
+                        // Add new option to dropdown and select it
+                        var newOption = $('<option>', {
+                            value: result.id,
+                            text: result.name,
+                            selected: true
+                        });
+                        $("#PersonId").append(newOption);
+                    },
+                    error: function(err){
+                        alert("Error adding person.");
+                        console.log(err);
+                    }
+                });
+            });
+
+        });
+    </script>
+}
+

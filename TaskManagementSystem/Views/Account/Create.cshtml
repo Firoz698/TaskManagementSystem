@@ -1,0 +1,100 @@
+﻿@model TaskManagementSystem.Models.User
+
+@{
+    ViewData["Title"] = "Add New User";
+}
+
+<h3 class="mb-3 text-center text-primary">Add New User</h3>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <!-- Left column -->
+        <div class="col-md-6">
+
+            <div class="form-group mb-3">
+                <label asp-for="UserName" class="form-label">User Name</label>
+                <input asp-for="UserName" class="form-control" placeholder="Enter username" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Password" class="form-label">Password</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Address" class="form-label">Address</label>
+                <input asp-for="Address" class="form-control" placeholder="Enter address" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="col-md-6">
+
+            <div class="form-group mb-3">
+                <label asp-for="Contact" class="form-label">Contact</label>
+                <input asp-for="Contact" class="form-control" placeholder="Enter contact number" />
+                <span asp-validation-for="Contact" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="About" class="form-label">About</label>
+                <textarea asp-for="About" class="form-control" rows="3" placeholder="Write something about user..."></textarea>
+                <span asp-validation-for="About" class="text-danger"></span>
+            </div>
+
+            <!-- ✅ Role Dropdown -->
+            <div class="form-group mb-3">
+                <label asp-for="RoleId" class="form-label">Select Role</label>
+                <select asp-for="RoleId" asp-items="ViewBag.Roles" class="form-select">
+                    <option value="">-- Select Role --</option>
+                </select>
+                <span asp-validation-for="RoleId" class="text-danger"></span>
+            </div>
+
+            <!-- ✅ Photo Upload Field -->
+            <div class="form-group mb-3">
+                <label class="form-label">Upload Photo</label>
+                <input type="file" name="Photo" class="form-control" accept="image/*" />
+                <small class="text-muted">Supported formats: JPG, JPEG, PNG</small>
+            </div>
+
+            <!-- ✅ Optional Preview -->
+            <div id="photo-preview" class="text-center mb-3"></div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <button type="submit" class="btn btn-success px-4">Save</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2 px-4">Back</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ✅ Simple image preview
+        document.querySelector('input[name="Photo"]').addEventListener('change', function (e) {
+            const preview = document.getElementById('photo-preview');
+            preview.innerHTML = "";
+            const file = e.target.files[0];
+            if (file) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.maxWidth = "150px";
+                img.style.borderRadius = "8px";
+                img.style.marginTop = "10px";
+                img.style.border = "1px solid #ccc";
+                preview.appendChild(img);
+            }
+        });
+    </script>
+}

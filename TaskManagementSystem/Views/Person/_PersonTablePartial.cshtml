@@ -1,0 +1,641 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Person>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+@{
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Person");
+    bool canView = permission?.CanView ?? false;
+    bool canCreate = permission?.CanCreate ?? false;
+    bool canEdit = permission?.CanEdit ?? false;
+    bool canDelete = permission?.CanDelete ?? false;
+
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string searchString = ViewBag.SearchString ?? "";
+}
+
+<style>
+    .maincontainer {
+/*         padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto; */
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+        padding: 25px;
+        border-radius: 12px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .action-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box input {
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+        padding: 12px 45px 12px 20px;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .search-box input:focus {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        outline: none;
+    }
+
+    .search-box .search-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 1.2rem;
+    }
+
+    .btn {
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    /* Table Styles */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        color: white;
+        font-weight: 600;
+        padding: 15px;
+        border: none;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table tbody tr:hover {
+        background-color: #fdf2f8;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+    }
+
+    .status-inactive {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #991b1b;
+    }
+
+    /* Card View for Mobile */
+    .person-card {
+        display: none;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .person-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+
+    .person-card .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    .person-card .person-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 5px;
+    }
+
+    .person-card .person-date {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .person-card .card-body {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .person-card .info-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .person-card .info-icon {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ec4899;
+        font-size: 1.1rem;
+    }
+
+    .person-card .info-content {
+        flex: 1;
+    }
+
+    .person-card .info-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .person-card .info-value {
+        font-weight: 600;
+        color: #1f2937;
+        margin-top: 2px;
+    }
+
+    .person-card .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .person-card .actions .btn {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .stats-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: #92400e;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-left: 15px;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-top: 25px;
+    }
+
+    .pagination {
+        margin: 0;
+        justify-content: center;
+    }
+
+    .page-link {
+        border-radius: 8px;
+        margin: 0 3px;
+        border: 2px solid #e2e8f0;
+        color: #ec4899;
+        font-weight: 600;
+        padding: 8px 16px;
+    }
+
+    .page-link:hover {
+        background-color: #ec4899;
+        border-color: #ec4899;
+        color: white;
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+        border-color: #ec4899;
+    }
+
+    .page-item.disabled .page-link {
+        background-color: #f3f4f6;
+        border-color: #e5e7eb;
+        color: #9ca3af;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #d1d5db;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h4 {
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .empty-state p {
+        color: #9ca3af;
+    }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .action-bar .d-flex {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .search-box {
+            order: -1;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .maincontainer {
+            padding: 15px;
+        }
+
+        .page-header {
+            padding: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 1.4rem;
+        }
+
+        .stats-badge {
+            display: block;
+            margin-left: 0;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .table-container {
+            display: none;
+        }
+
+        .person-card {
+            display: block;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .pagination .page-link {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .page-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .action-bar {
+            padding: 15px;
+        }
+
+        .person-card {
+            padding: 15px;
+        }
+
+        .person-card .actions .btn {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<div class="maincontainer">
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-people"></i>
+            <h4>No Persons Found</h4>
+            <p>Start by adding your first person to the system!</p>
+            @if (canCreate)
+            {
+                <a asp-action="Create" class="btn btn-primary mt-3">
+                    <i class="bi bi-person-plus-fill"></i> Add First Person
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Desktop Table View -->
+        <div class="table-container" id="personTable">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Name</th>
+                        <th style="width: 12%;">Created At</th>
+                        <th style="width: 10%;" class="text-center">Status</th>
+                        <th style="width: 25%;">Address</th>
+                        <th style="width: 15%;">Mobile Number</th>
+                        @if (canEdit || canDelete || canView)
+                        {
+                            <th style="width: 18%;" class="text-center">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var person in Model)
+                    {
+                        <tr>
+                            <td>
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <strong>@person.Name</strong>
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar3"></i>
+                                @person.CreatedAt.ToString("dd MMM yyyy")
+                            </td>
+                            <td class="text-center">
+                                @if (person.IsActive)
+                                {
+                                    <span class="status-badge status-active">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-inactive">
+                                        <i class="bi bi-x-circle"></i> Inactive
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <i class="bi bi-geo-alt"></i>
+                                @person.Address
+                            </td>
+                            <td>
+                                <i class="bi bi-telephone"></i>
+                                @person.Phone
+                            </td>
+                            @if (canEdit || canDelete || canView)
+                            {
+                                <td class="text-center">
+                                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                        @if (canView)
+                                        {
+                                            <a asp-action="Details" asp-route-id="@person.Id" class="btn btn-info btn-sm">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        }
+                                        @if (canEdit)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@person.Id" class="btn btn-warning btn-sm">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        }
+                                        @if (canDelete)
+                                        {
+                                            <form asp-action="Delete" asp-route-id="@person.Id" method="post" class="d-inline" 
+                                                  onsubmit="return confirm('Are you sure you want to delete @person.Name?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div id="personCards">
+            @foreach (var person in Model)
+            {
+                <div class="person-card">
+                    <div class="card-header">
+                        <div style="flex: 1;">
+                            <div class="person-name">
+                                <i class="bi bi-person-circle"></i> @person.Name
+                            </div>
+                            <div class="person-date">
+                                <i class="bi bi-calendar3"></i> Member since @person.CreatedAt.ToString("dd MMM yyyy")
+                            </div>
+                        </div>
+                        @if (person.IsActive)
+                        {
+                            <span class="status-badge status-active">
+                                <i class="bi bi-check-circle"></i> Active
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-inactive">
+                                <i class="bi bi-x-circle"></i> Inactive
+                            </span>
+                        }
+                    </div>
+
+                    <div class="card-body">
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <i class="bi bi-telephone-fill"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Phone Number</div>
+                                <div class="info-value">@person.Phone</div>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Address</div>
+                                <div class="info-value">@person.Address</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        @if (canView)
+                        {
+                            <a asp-action="Details" asp-route-id="@person.Id" class="btn btn-info btn-sm">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
+                        }
+                        @if (canEdit)
+                        {
+                            <a asp-action="Edit" asp-route-id="@person.Id" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                        }
+                        @if (canDelete)
+                        {
+                            <form asp-action="Delete" asp-route-id="@person.Id" method="post" class="flex-grow-1"
+                                  onsubmit="return confirm('Are you sure?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+
+
+        @if (totalPages > 1)
+        {
+            <div class="pagination-container">
+                <nav>
+                    <ul class="pagination">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, searchString = searchString })">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                        </li>
+
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(currentPage == i ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i, searchString = searchString })">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, searchString = searchString })">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Real-time search
+            $('#searchInput').on('keyup', function () {
+                var value = $(this).val().toLowerCase();
+                
+                // Filter table rows
+                $('#personTable tbody tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+                
+                // Filter mobile cards
+                $('.person-card').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            // Confirm delete with person name
+            $('form[asp-action="Delete"]').on('submit', function(e) {
+                var personName = $(this).closest('tr, .person-card').find('strong, .person-name').first().text().trim();
+                if (!confirm('Are you sure you want to delete ' + personName + '?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+}

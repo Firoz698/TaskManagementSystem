@@ -1,0 +1,47 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Expense>
+
+@{
+    ViewData["Title"] = "Expense Report";
+}
+
+<h2>Expense Report</h2>
+
+<form method="get" asp-action="Index" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label class="form-label">From Date</label>
+        <input type="date" name="from" class="form-control" value="@ViewBag.FromDate" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">To Date</label>
+        <input type="date" name="to" class="form-control" value="@ViewBag.ToDate" />
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-success w-100">Filter</button>
+    </div>
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th class="text-end">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @(item.Date.HasValue ? item.Date.Value.ToString("dd-MM-yyyy") : "-")
+                </td>
+                <td>@item.Description</td>
+                <td class="text-end">@item.Amount.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4 class="text-end mt-3">
+    <strong>Total:</strong> @ViewBag.TotalAmount.ToString("0.00") ৳
+</h4>

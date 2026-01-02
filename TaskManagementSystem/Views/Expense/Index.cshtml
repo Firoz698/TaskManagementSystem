@@ -1,0 +1,373 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Expense>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+
+@{
+    ViewData["Title"] = "Expense Report";
+
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Expense");
+
+    bool canView = permission?.CanView ?? false;
+    bool canCreate = permission?.CanCreate ?? false;
+    bool canEdit = permission?.CanEdit ?? false;
+    bool canDelete = permission?.CanDelete ?? false;
+}
+
+@if (!canView)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> You don't have permission to view expenses.
+    </div>
+    return;
+}
+
+<div class="">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-cash-stack"></i> Expense Report
+        </h2>
+        @if (canCreate)
+        {
+            <a asp-action="Create" class="btn btn-success w-md-auto">
+                <i class="bi bi-plus-circle"></i> Add Expense
+            </a>
+        }
+    </div>
+
+    <!-- Filter Section -->
+    <form method="get" asp-action="Index" class="mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-calendar-month"></i> Select Month
+                        </label>
+                        <input type="month" name="month" class="form-control" value="@ViewBag.SelectedMonth" />
+                    </div>
+                    <div class="col-6 col-md-6 col-lg-2">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-calendar-event"></i> From Date
+                        </label>
+                        <input type="date" name="from" class="form-control" value="@ViewBag.FromDate" />
+                    </div>
+                    <div class="col-6 col-md-6 col-lg-2">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-calendar-check"></i> To Date
+                        </label>
+                        <input type="date" name="to" class="form-control" value="@ViewBag.ToDate" />
+                    </div>
+                    <div class="col-12 col-lg-5">
+                        <label class="form-label fw-bold d-none d-lg-block">&nbsp;</label>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <button type="submit" name="action" value="filter" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-funnel"></i> Filter
+                            </button>
+                            <button type="button" class="btn btn-secondary flex-grow-1"
+                                    onclick="window.location='@Url.Action("Index")'">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-info flex-grow-1"
+                                    onclick="window.location='@Url.Action("ExpenseReport", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate })'">
+                                <i class="bi bi-file-earmark-pdf"></i> <span class="d-none d-sm-inline">Report</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Desktop Table View -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-bordered table-striped table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 12%;">Date</th>
+                    <th style="width: 40%;">Description</th>
+                    <th class="text-end" style="width: 15%;">Amount (৳)</th>
+                    <th style="width: 15%;">Added By</th>
+                    <th class="text-center" style="width: 18%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No expense records found
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                @(item.Date.HasValue ? item.Date.Value.ToString("dd-MM-yyyy") : "-")
+                            </td>
+                            <td>@item.Description</td>
+                            <td class="text-end fw-bold">@item.Amount.ToString("#,##0.00")</td>
+                            <td>
+                                <i class="bi bi-person-circle text-info"></i>
+                                @item.CreatedByUserName
+                            </td>
+                            <td class="text-center">
+                                @if (canEdit)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                }
+                                @if (canDelete)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete this expense?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-md-none">
+        @if (!Model.Any())
+        {
+            <div class="card shadow-sm">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                    <h5>No Expense Records Found</h5>
+                    <p class="mb-0">Try adjusting your filters or add a new expense.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            foreach (var item in Model)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3"></i>
+                                    @(item.Date.HasValue ? item.Date.Value.ToString("dd-MM-yyyy") : "-")
+                                </small>
+                            </div>
+                            <span class="badge bg-success fs-6">
+                                ৳ @item.Amount.ToString("#,##0.00")
+                            </span>
+                        </div>
+
+                        <h6 class="card-title mb-2">@item.Description</h6>
+
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-person-circle"></i> Added by: <strong>@item.CreatedByUserName</strong>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            @if (canEdit)
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm flex-fill">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                            }
+                            @if (canDelete)
+                            {
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="flex-fill"
+                                      onsubmit="return confirm('Are you sure you want to delete this expense?');">
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Pagination & Summary -->
+    @if (Model.Any())
+    {
+        <div class="card shadow-sm mt-3">
+            <div class="card-body">
+                <!-- Mobile View -->
+                <div class="d-md-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <small class="text-muted d-block">Total Records</small>
+                            <strong>@ViewBag.TotalRecords</strong>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">Total Amount</small>
+                            <strong class="text-success fs-5">৳ @ViewBag.TotalAmount?.ToString("#,##0.00")</strong>
+                        </div>
+                    </div>
+
+                    @if ((int)ViewBag.TotalRecords > 0)
+                    {
+                        var startRecord = ((int)ViewBag.CurrentPage - 1) * (int)ViewBag.PageSize + 1;
+                        var endRecord = Math.Min(startRecord + (int)ViewBag.PageSize - 1, (int)ViewBag.TotalRecords);
+                        <p class="text-center text-muted small mb-3">
+                            Showing @startRecord – @endRecord
+                        </p>
+                    }
+
+                    <!-- Compact Mobile Pagination -->
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-center mb-0 flex-wrap">
+                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = 1 })">
+                                    &laquo;
+                                </a>
+                            </li>
+                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = ViewBag.CurrentPage - 1 })">
+                                    &lt;
+                                </a>
+                            </li>
+
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                if (i >= ViewBag.CurrentPage - 1 && i <= ViewBag.CurrentPage + 1)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = i })">@i</a>
+                                    </li>
+                                }
+                            }
+
+                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = ViewBag.CurrentPage + 1 })">
+                                    &gt;
+                                </a>
+                            </li>
+                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = ViewBag.TotalPages })">
+                                    &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Desktop View -->
+                <div class="d-none d-md-flex justify-content-between align-items-center">
+                    <!-- Left: Record Info -->
+                    <div>
+                        @if ((int)ViewBag.TotalRecords > 0)
+                        {
+                            var startRecord = ((int)ViewBag.CurrentPage - 1) * (int)ViewBag.PageSize + 1;
+                            var endRecord = Math.Min(startRecord + (int)ViewBag.PageSize - 1, (int)ViewBag.TotalRecords);
+                            <span class="text-muted">
+                                Total Records: <strong>@ViewBag.TotalRecords</strong>, Showing <strong>@startRecord – @endRecord</strong>
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Center: Pagination -->
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = 1 })">First</a>
+                            </li>
+                            <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = ViewBag.CurrentPage - 1 })">Prev</a>
+                            </li>
+
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                if (i >= ViewBag.CurrentPage - 2 && i <= ViewBag.CurrentPage + 2)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = i })">@i</a>
+                                    </li>
+                                }
+                            }
+
+                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = ViewBag.CurrentPage + 1 })">Next</a>
+                            </li>
+                            <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { month = ViewBag.SelectedMonth, from = ViewBag.FromDate, to = ViewBag.ToDate, page = ViewBag.TotalPages })">Last</a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <!-- Right: Total Amount -->
+                    <div>
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-calculator"></i> Total: ৳ @ViewBag.TotalAmount?.ToString("#,##0.00")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Date validation
+            $('input[name="from"], input[name="to"]').on('change', function() {
+                const fromDate = $('input[name="from"]').val();
+                const toDate = $('input[name="to"]').val();
+
+                if (fromDate && toDate && fromDate > toDate) {
+                    alert('⚠️ From Date cannot be later than To Date!');
+                    $(this).val('');
+                }
+            });
+
+            // Confirm before reset
+            $('button[value="reset"]').on('click', function(e) {
+                if ($('input[name="month"]').val() || $('input[name="from"]').val() || $('input[name="to"]').val()) {
+                    if (!confirm('Are you sure you want to reset all filters?')) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        });
+    </script>
+
+    <style>
+        /* Card hover effect */
+        .d-md-none .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .d-md-none .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+        /* Amount highlight */
+        .table td.text-end.fw-bold {
+            color: #198754;
+        }
+
+        /* Better mobile button spacing */
+        @@media (max-width: 576px) {
+            .btn {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+}

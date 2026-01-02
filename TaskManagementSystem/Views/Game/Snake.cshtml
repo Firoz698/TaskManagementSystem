@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Snake Game";
+}
+
+<h2 class="text-center mb-4">🐍 Snake Game</h2>
+
+<div class="d-flex justify-content-center gap-4 flex-wrap">
+    <!-- Game Canvas -->
+    <div>
+        <canvas id="gameCanvas" width="800" height="600" style="border:2px solid #000; background-color:#f8f9fa;"></canvas>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="d-flex flex-column align-items-start mt-3">
+        <h5 class="mb-3">🎮 Game Controls</h5>
+
+        <button id="startBtn" class="btn btn-success mb-2 w-100">▶ Start</button>
+        <button id="pauseBtn" class="btn btn-warning mb-2 w-100">⏸ Pause</button>
+        <button id="resetBtn" class="btn btn-danger mb-3 w-100">🔄 Reset</button>
+
+        <div class="border rounded p-3 bg-light text-center">
+            <h6 class="fw-bold mb-2">Movement Control</h6>
+            <div class="d-flex flex-column align-items-center">
+                <button class="btn btn-outline-primary mb-2 control-btn" data-dir="up">⬆ Up (↑)</button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary control-btn" data-dir="left">⬅ Left (←)</button>
+                    <button class="btn btn-outline-primary control-btn" data-dir="down">⬇ Down (↓)</button>
+                    <button class="btn btn-outline-primary control-btn" data-dir="right">➡ Right (→)</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="score" class="mt-3"><strong>Score:</strong> 0</p>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let snake = [{x:15, y:15}];
+    let food = {x: Math.floor(Math.random()*30), y: Math.floor(Math.random()*30)};
+    let dx = 1, dy = 0;
+    let score = 0;
+    let gameInterval = null;
+
+    const blockSize = 20;
+    const gridCount = canvas.width / blockSize;
+
+    // ✅ Draw everything
+    function draw() {
+        ctx.fillStyle = "#f8f9fa";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "green";
+        snake.forEach(part => ctx.fillRect(part.x*blockSize, part.y*blockSize, blockSize-2, blockSize-2));
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(food.x*blockSize, food.y*blockSize, blockSize-2, blockSize-2);
+    }
+
+    // ✅ Update game logic
+    function update() {
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+        if(head.x === food.x && head.y === food.y){
+            snake.unshift(head);
+            score++;
+            document.getElementById("score").innerHTML = "<strong>Score:</strong> " + score;
+            food = {x: Math.floor(Math.random()*gridCount), y: Math.floor(Math.random()*gridCount)};
+        } else {
+            snake.pop();
+            snake.unshift(head);
+        }
+
+        if(head.x < 0 || head.y < 0 || head.x >= gridCount || head.y >= gridCount || snake.slice(1).some(s=>s.x===head.x && s.y===head.y)){
+            alert("💀 Game Over! Your score: " + score);
+            resetGame();
+        }
+
+        draw();
+    }
+
+    // ✅ Control Functions
+    function startGame() {
+        if(!gameInterval) gameInterval = setInterval(update, 150);
+    }
+
+    function pauseGame() {
+        clearInterval(gameInterval);
+        gameInterval = null;
+    }
+
+    function resetGame() {
+        snake = [{x:15, y:15}];
+        dx = 1; dy = 0;
+        score = 0;
+        document.getElementById("score").innerHTML = "<strong>Score:</strong> 0";
+        food = {x: Math.floor(Math.random()*gridCount), y: Math.floor(Math.random()*gridCount)};
+        draw();
+        pauseGame();
+    }
+
+    // ✅ Keyboard Control
+    document.addEventListener("keydown", e => {
+        switch(e.key){
+            case "ArrowUp": if(dy===0){dx=0; dy=-1;} break;
+            case "ArrowDown": if(dy===0){dx=0; dy=1;} break;
+            case "ArrowLeft": if(dx===0){dx=-1; dy=0;} break;
+            case "ArrowRight": if(dx===0){dx=1; dy=0;} break;
+        }
+    });
+
+    // ✅ Button Control
+    document.querySelectorAll(".control-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const dir = btn.getAttribute("data-dir");
+            switch(dir){
+                case "up": if(dy===0){dx=0; dy=-1;} break;
+                case "down": if(dy===0){dx=0; dy=1;} break;
+                case "left": if(dx===0){dx=-1; dy=0;} break;
+                case "right": if(dx===0){dx=1; dy=0;} break;
+            }
+        });
+    });
+
+    document.getElementById("startBtn").addEventListener("click", startGame);
+    document.getElementById("pauseBtn").addEventListener("click", pauseGame);
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+    draw();
+</script>

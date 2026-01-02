@@ -1,0 +1,71 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.DailyNote>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+
+@{
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Expense");
+    bool canView = permission?.CanView ?? false;
+    bool canCreate = permission?.CanCreate ?? false;
+    bool canEdit = permission?.CanEdit ?? false;
+    bool canDelete = permission?.CanDelete ?? false;
+}
+
+@if (!Model.Any())
+{
+    <div class="col-12 text-center text-danger">
+        No notes found!
+    </div>
+}
+else
+{
+    @foreach (var note in Model)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="card-text">@note.Note</p>
+                    <small class="text-muted">Created: @note.CreatedAt.ToString("dd MMM yyyy HH:mm")</small>
+                    <div class="mt-2">
+                        @if (canEdit)
+                        {
+                            <a asp-action="Edit" asp-route-id="@note.Id" class="btn btn-sm btn-warning">Edit</a>
+                        }
+                        @if (canDelete)
+                        {
+                            <a asp-action="Delete" asp-route-id="@note.Id" class="btn btn-sm btn-danger">Delete</a>
+                        }
+                        @if (canView)
+                        {
+                            <a asp-action="Details" asp-route-id="@note.Id" class="btn btn-sm btn-info">Details</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="col-12">
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="#" data-page="@(ViewBag.CurrentPage - 1)">Previous</a>
+                </li>
+
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="#" data-page="@i">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link" href="#" data-page="@(ViewBag.CurrentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}

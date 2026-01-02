@@ -1,0 +1,604 @@
+﻿@*
+    Modern Responsive EmployeePortal layout with collapsible sidebar
+*@
+@using TaskManagementSystem.Models
+@using Microsoft.EntityFrameworkCore
+@using TaskManagementSystem.Models.Permission
+@inject TaskManagementSystem.DataContext.ApplicationDbContext _context
+@{
+    // Session theke user info
+    var userName = Context.Session.GetString("UserName");
+    string userPhoto = "/images/default-avatar.jpg"; // default fallback
+    int? userId = Context.Session.GetInt32("UserId");
+
+    int? userRoleId = null;
+
+    if (!string.IsNullOrEmpty(userName) && userId != null)
+    {
+        var currentUser = _context.Users.Include(u => u.Role).FirstOrDefault(u => u.Id == userId.Value && !u.IsDeleted && u.IsActive);
+
+        if (currentUser != null)
+        {
+            userRoleId = currentUser.RoleId;
+
+            if (!string.IsNullOrEmpty(currentUser.PhotoPath))
+            {
+                userPhoto = currentUser.PhotoPath;
+            }
+        }
+    }
+
+    // Role er menu fetch kora
+    var menus = new List<Menu>();
+    if (userRoleId != null)
+    {
+        menus = _context.RoleMenuPermissions
+            .Include(rmp => rmp.Menu)
+            .Where(rmp => rmp.RoleId == userRoleId.Value
+                          && rmp.CanView
+                          && !rmp.IsDeleted
+                          && rmp.IsActive
+                          && rmp.Menu != null
+                          && !rmp.Menu.IsDeleted
+                          && rmp.Menu.IsActive)
+            .Select(rmp => rmp.Menu!)
+            .Distinct()
+            .ToList();
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EmployeePortal</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/EmployeePortal.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --topbar-height: 60px;
+            --primary-color: #3b5998;
+            --sidebar-bg: #1a1d29;
+            --sidebar-hover: #252936;
+            --topbar-bg: #ffffff;
+            --footer-bg: #f8f9fa;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .wrapper {
+            display: flex;
+            flex: 1 0 auto;
+            min-height: 100vh;
+        }
+
+        /* ============ SIDEBAR STYLES ============ */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, #0f1116 100%);
+            color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: all var(--transition-speed) ease;
+            z-index: 1050;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+            .sidebar::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .sidebar::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.2);
+                border-radius: 10px;
+            }
+
+            .sidebar.collapsed {
+                width: var(--sidebar-collapsed-width);
+            }
+
+        .sidebar-header {
+            padding: 9px 9px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+            .sidebar-header h4 {
+                font-size: 25px;
+                font-weight: 700;
+                color: #fff;
+                margin: 0;
+                white-space: nowrap;
+                transition: opacity var(--transition-speed);
+            }
+
+        .sidebar.collapsed .sidebar-header h4 {
+            opacity: 0;
+        }
+
+        .logo-container {
+            margin: 10px 0 0 0;
+        }
+
+            .logo-container img {
+                width: 70px;
+                height: 70px;
+                object-fit: cover;
+                transition: all var(--transition-speed);
+            }
+
+        .sidebar.collapsed .logo-container img {
+            width: 45px;
+            height: 45px;
+        }
+
+        /* Menu Styles */
+        .sidebar-menu {
+            padding: 10px;
+            list-style: none;
+        }
+
+            .sidebar-menu .nav-item {
+                margin-bottom: 5px;
+            }
+
+            .sidebar-menu .nav-link {
+                display: flex;
+                align-items: center;
+                color: rgba(255,255,255,0.8);
+                text-decoration: none;
+                border-radius: 8px;
+                transition: all 0.2s ease;
+                font-size: 0.95rem;
+                white-space: nowrap;
+            }
+
+                .sidebar-menu .nav-link:hover {
+                    background: var(--sidebar-hover);
+                    color: #fff;
+                    transform: translateX(5px);
+                }
+
+                .sidebar-menu .nav-link.active {
+                    background: linear-gradient(135deg, var(--primary-color), #4a69bd);
+                    color: #fff;
+                    font-weight: 600;
+                    box-shadow: 0 4px 8px rgba(59, 89, 152, 0.3);
+                }
+
+                .sidebar-menu .nav-link i {
+                    font-size: 1.2rem;
+                    min-width: 25px;
+                    margin-right: 12px;
+                    transition: margin var(--transition-speed);
+                }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .sidebar-menu .nav-link span {
+            transition: opacity var(--transition-speed);
+        }
+
+        .sidebar.collapsed .nav-link span {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Toggle Button */
+        .sidebar-toggle {
+            position: absolute;
+            top: 15px;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1051;
+            transition: all 0.3s ease;
+        }
+
+            .sidebar-toggle:hover {
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            }
+
+        /* ============ MAIN CONTENT STYLES ============ */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            transition: margin-left var(--transition-speed) ease;
+            min-height: 100vh;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Topbar */
+        .topbar {
+            background: var(--topbar-bg);
+            height: var(--topbar-height);
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+        }
+
+            .topbar h5 {
+                color: #2c3e50;
+                font-weight: 600;
+                font-size: 1.3rem;
+                margin: 0;
+            }
+
+            .topbar .navbar-nav {
+                display: flex;
+                align-items: center;
+            }
+
+            .topbar .nav-link {
+                color: #2c3e50;
+                padding: 8px 15px;
+                border-radius: 8px;
+                transition: all 0.2s;
+            }
+
+                .topbar .nav-link:hover {
+                    background: #f8f9fa;
+                }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.2s;
+        }
+
+            .dropdown-item:hover {
+                background: #f8f9fa;
+                padding-left: 25px;
+            }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            padding: 15px;
+            flex: 1;
+            background: #f5f7fa;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--footer-bg);
+            color: #6c757d;
+            padding: 20px 25px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Menu Overlay */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1049;
+            opacity: 0;
+            transition: opacity var(--transition-speed);
+        }
+
+            .mobile-overlay.show {
+                display: block;
+                opacity: 1;
+            }
+
+        /* Mobile Hamburger */
+        .mobile-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #2c3e50;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* ============ RESPONSIVE STYLES ============ */
+        @@media (max-width: 991px) {
+            .sidebar
+
+        {
+            transform: translateX(-100%);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .sidebar-toggle {
+            display: none;
+        }
+
+        .main-content {
+            margin-left: 0 !important;
+        }
+
+        .mobile-hamburger {
+            display: block;
+        }
+
+        .topbar h5 {
+            font-size: 1.1rem;
+        }
+
+        .content-wrapper {
+            padding: 15px;
+        }
+
+        }
+
+        @@media (max-width: 576px) {
+            .topbar
+
+        {
+            padding: 0 15px;
+        }
+
+        .topbar h5 {
+            font-size: 1rem;
+        }
+
+
+
+        .content-wrapper {
+            padding: 10px;
+        }
+
+        footer {
+            font-size: 0.8rem;
+            padding: 15px;
+        }
+
+        }
+
+        /* Animations */
+        @@keyframes slideIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .content-wrapper > * {
+            animation: slideIn 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    @if (!string.IsNullOrEmpty(userName))
+    {
+        <div class="wrapper">
+            <!-- Mobile Overlay -->
+            <div class="mobile-overlay" id="mobileOverlay"></div>
+
+            <!-- Sidebar -->
+            <nav class="sidebar" id="sidebar">
+                <button class="sidebar-toggle d-none d-lg-flex" id="sidebarToggle">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div class="sidebar-header">
+                    <h4>Task Management</h4>
+                    <div class="logo-container">
+                        <img src="~/Logo/pngegg.png" alt="Logo">
+                    </div>
+                </div>
+
+                <ul class="sidebar-menu nav flex-column">
+                    @foreach (var menu in menus)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == menu.ControllerName ? "active" : "")"
+                               asp-area="" asp-controller="@menu.ControllerName" asp-action="@menu.ActionName">
+                                <i class="bi bi-circle-fill"></i>
+                                <span>@menu.Title</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Topbar -->
+                <div class="topbar">
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="mobile-hamburger" id="mobileHamburger">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <h5>@ViewData["Title"]</h5>
+                    </div>
+
+                    <ul class="navbar-nav flex-row align-items-center m-0 p-0 list-unstyled">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="@userPhoto" alt="User Avatar" class="user-avatar me-2" />
+                                <span class="fw-semibold d-none d-md-inline">@userName</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="Profile" asp-action="Index">
+                                        <i class="bi bi-person me-2"></i>Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="Setting" asp-action="Index">
+                                        <i class="bi bi-gear me-2"></i>Settings
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-area="" asp-controller="Account" asp-action="Logout">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Page Content -->
+                <div class="content-wrapper">
+                    @RenderBody()
+                </div>
+
+                <!-- Footer -->
+                <footer>
+                    <div class="container-fluid">
+                        <span>&copy; 2025 EmployeePortal. All rights reserved.</span>
+                        <span class="d-none d-md-inline"> | Developed with <i class="bi bi-heart-fill text-danger"></i></span>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileHamburger = document.getElementById('mobileHamburger');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+
+            // Desktop sidebar toggle
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-chevron-left');
+                    icon.classList.toggle('bi-chevron-right');
+
+                    // Save state
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                });
+
+                // Load saved state
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    sidebarToggle.querySelector('i').classList.replace('bi-chevron-left', 'bi-chevron-right');
+                }
+            }
+
+            // Mobile menu toggle
+            if (mobileHamburger) {
+                mobileHamburger.addEventListener('click', function() {
+                    sidebar.classList.add('show');
+                    mobileOverlay.classList.add('show');
+                });
+            }
+
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    mobileOverlay.classList.remove('show');
+                });
+            }
+
+            // Close mobile menu on link click
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('show');
+                        mobileOverlay.classList.remove('show');
+                    }
+                });
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('show');
+                    mobileOverlay.classList.remove('show');
+                }
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

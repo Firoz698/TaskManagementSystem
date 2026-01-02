@@ -1,0 +1,58 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Person>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+@{
+    ViewData["Title"] = "Client Info";
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Person");
+    bool canCreate = permission?.CanCreate ?? false;
+}
+
+
+<div class="d-flex justify-content-between mb-3">
+    @if (canCreate)
+    {
+        <a asp-action="Create" class="btn btn-primary">Add New Person</a>
+    }
+    <input type="text" id="searchInput" class="form-control w-25" placeholder="Search Name...">
+</div>
+
+<div id="personTable">
+    @await Html.PartialAsync("_PersonTablePartial", Model)
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadPersons(page = 1, searchTerm = '') {
+            $.ajax({
+                url: '@Url.Action("Index", "Person")',
+                type: 'GET',
+                data: { page: page, searchString: searchTerm },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function (result) {
+                    $('#personTable').html(result);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            // Light Search
+            $('#searchInput').on('keyup', function () {
+                var searchTerm = $(this).val();
+                loadPersons(1, searchTerm); // page = 1 when search
+            });
+
+            // AJAX Pagination
+            $(document).on('click', '.pagination a', function (e) {
+                e.preventDefault();
+                var page = $(this).data('page');
+                var searchTerm = $('#searchInput').val();
+                if (!$(this).parent().hasClass('disabled') && page) {
+                    loadPersons(page, searchTerm);
+                }
+            });
+        });
+    </script>
+}

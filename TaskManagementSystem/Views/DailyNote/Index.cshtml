@@ -1,0 +1,69 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.DailyNote>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+@{
+    ViewData["Title"] = "My Daily Notes";
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "DailyNote");
+    bool canCreate = permission?.CanCreate ?? false;
+}
+
+<h2 class="mb-4">@ViewData["Title"]</h2>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search notes..." value="@ViewBag.SearchText" />
+    </div>
+    <div class="col-md-6 text-end">
+        @if (canCreate)
+         {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Note
+            </a>
+         }
+    </div>
+</div>
+
+<div id="notesContainer" class="row">
+    @await Html.PartialAsync("_DailyNotesTable", Model)
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let typingTimer;
+        const delay = 400; // milliseconds
+
+        // Trigger search after typing stops
+        $("#searchBox").on("keyup", function () {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => loadNotes(1), delay);
+        });
+
+        // Load notes via AJAX
+        function loadNotes(page = 1) {
+            const searchText = $("#searchBox").val() || "";
+            $.ajax({
+                url: '@Url.Action("Index", "DailyNote")',
+                type: 'GET',
+                data: { searchText: searchText, page: page },
+                success: function (data) {
+                    $("#notesContainer").html(data);
+                },
+                error: function () {
+                    alert("Failed to load notes. Please try again.");
+                }
+            });
+        }
+
+        // Handle pagination clicks
+        $(document).on("click", ".page-link", function (e) {
+            e.preventDefault();
+            const page = $(this).data("page");
+            if (page) {
+                loadNotes(page);
+            }
+        });
+    </script>
+}

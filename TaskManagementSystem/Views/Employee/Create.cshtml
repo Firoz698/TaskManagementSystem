@@ -1,0 +1,133 @@
+﻿@model TaskManagementSystem.Models.EmployeeCreateUpdateViewModel
+@{
+    ViewData["Title"] = "Create New Employee";
+}
+<div class="container mt-1">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-2 border rounded">
+                    <div class="bg-primary text-white text-center py-3 rounded mb-4 shadow-sm">
+                        <h2 class="mb-0">👤 Create New Employee</h2>
+                    </div>
+                    <form asp-action="Create" method="post">
+                        <div class="row mb-3">
+                            <label asp-for="FullName" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="Email" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="DepartmentId" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <select asp-for="DepartmentId" asp-items="@(new SelectList(Model.Departments, "Id", "Name"))" class="form-control" id="DepartmentDropdown">
+                                    <option value="">Select Department</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="DesignationId" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <select asp-for="DesignationId" asp-items="@(new SelectList(Model.Designations, "Id", "Name"))" class="form-control" id="DesignationDropdown">
+                                    <option value="">Select Designation</option>
+                                </select>
+                                <span asp-validation-for="DesignationId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="HireDate" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="HireDate" class="form-control" type="date" />
+                                <span asp-validation-for="HireDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="DateOfBirth" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="EmployeeTypeId" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <select asp-for="EmployeeTypeId" asp-items="@(new SelectList(Model.EmployeeTypes, "Id", "Name"))" class="form-control">
+                                    <option value="">Select Employee Type</option>
+                                </select>
+                                <span asp-validation-for="EmployeeTypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label asp-for="Gender" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <div class="form-check form-check-inline">
+                                    <input asp-for="Gender" type="radio" class="form-check-input" value="Male" />
+                                    <label class="form-check-label">Male</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input asp-for="Gender" type="radio" class="form-check-input" value="Female" />
+                                    <label class="form-check-label">Female</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input asp-for="Gender" type="radio" class="form-check-input" value="Other" />
+                                    <label class="form-check-label">Other</label>
+                                </div>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label asp-for="Salary" class="col-sm-3 col-form-label text-end"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="Salary" class="form-control" placeholder="Enter salary" />
+                                <span asp-validation-for="Salary" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success btn-lg me-3">Create</button>
+                            <a class="btn btn-primary btn-lg" asp-action="List">Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+        function loadDesignations(departmentId, selectedDesignationId) {
+        if (departmentId) {
+        $.getJSON('@Url.Action("GetDesignations")', { departmentId: departmentId }, function (data) {
+        var $designationDropdown = $('#DesignationDropdown');
+        $designationDropdown.empty();
+        $designationDropdown.append('<option value="">Select Designation</option>');
+        $.each(data, function (index, item) {
+        var selected = item.id === selectedDesignationId ? 'selected' : '';
+        $designationDropdown.append('<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>');
+        });
+        });
+        } else {
+        $('#DesignationDropdown').empty().append('<option value="">Select Designation</option>');
+        }
+        }
+        var departmentId = $('#DepartmentDropdown').val();
+        var selectedDesignationId = '@Model.DesignationId';
+        if (departmentId) {
+        loadDesignations(parseInt(departmentId), parseInt(selectedDesignationId));
+        }
+        $('#DepartmentDropdown').change(function () {
+        var deptId = $(this).val();
+        loadDesignations(parseInt(deptId), null);
+        });
+        });
+    </script>
+}

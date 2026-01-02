@@ -1,0 +1,96 @@
+﻿@{
+    ViewData["Title"] = "Game Zone";
+}
+
+<style>
+    body {
+        background: linear-gradient(to right, #d7f0ff, #fef6ff);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .game-zone-container {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        padding: 40px 30px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .game-zone-container:hover {
+        transform: scale(1.01);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .game-btn {
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .game-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .snake-btn {
+        background: linear-gradient(135deg, #43a047, #66bb6a);
+        color: #fff;
+    }
+
+    .tic-btn {
+        background: linear-gradient(135deg, #ffa000, #ffca28);
+        color: #fff;
+    }
+
+    .plane-btn {
+        background: linear-gradient(135deg, #e53935, #ff5252);
+        color: #fff;
+    }
+
+    .snake-btn:hover {
+        background: linear-gradient(135deg, #2e7d32, #43a047);
+    }
+
+    .tic-btn:hover {
+        background: linear-gradient(135deg, #f57c00, #ffb300);
+    }
+
+    .plane-btn:hover {
+        background: linear-gradient(135deg, #c62828, #e53935);
+    }
+
+    footer {
+        margin-top: 60px;
+        color: #555;
+    }
+</style>
+
+<div class="container mt-5 text-center">
+    <div class="game-zone-container">
+        <h2 class="mb-3 text-primary fw-bold">🎮 Welcome to Game Zone 🎮</h2>
+        <p class="text-muted mb-4 fs-5">Select your favorite game and start the fun!</p>
+
+        <div class="d-flex flex-wrap justify-content-center gap-4 mb-4">
+            <a asp-action="Snake" class="game-btn snake-btn btn-lg px-5 py-3">
+                🐍 Snake Game
+            </a>
+            <a asp-action="TicTacToe" class="game-btn tic-btn btn-lg px-5 py-3">
+                ❌ Tic Tac Toe ⭕
+            </a>
+            <a asp-action="PlaneShooter" class="game-btn plane-btn btn-lg px-5 py-3">
+                ✈️ Plane Shooter
+            </a>
+            <a asp-action="CuteDollRunner" class="game-btn btn-lg px-5 py-3" style="background:linear-gradient(135deg,#7b1fa2,#ba68c8);color:white;">
+                👧 Cute Doll Runner
+            </a>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="alert alert-info shadow-sm mb-0">
+            <h5 class="mb-0">Developed by <strong>Md Firoz Ali</strong> 💻 | Have Fun Playing!</h5>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,144 @@
+﻿@{
+    ViewData["Title"] = "Tic-Tac-Toe Game";
+}
+
+<h2 class="text-center text-primary mb-4">🎯 Tic-Tac-Toe Game</h2>
+
+<div class="d-flex justify-content-center align-items-start gap-4">
+
+    <!-- 🎮 Game Board -->
+    <div class="p-3 bg-light shadow-lg rounded">
+        <table id="board" class="mx-auto border border-2 border-dark rounded">
+            @for (int r = 0; r < 3; r++)
+            {
+                <tr>
+                    @for (int c = 0; c < 3; c++)
+                    {
+                        <td class="cell text-center align-middle"></td>
+                    }
+                </tr>
+            }
+        </table>
+
+        <div class="mt-3 text-center">
+            <h5 id="status" class="fw-bold text-secondary"></h5>
+        </div>
+    </div>
+
+    <!-- 🎛️ Control Panel -->
+    <div class="d-flex flex-column align-items-center">
+        <button id="startBtn" class="btn btn-success mb-2 w-100">Start</button>
+        <button id="resetBtn" class="btn btn-warning mb-2 w-100">Reset</button>
+        <button id="restartBtn" class="btn btn-info mb-2 w-100">Restart</button>
+        <button id="exitBtn" class="btn btn-danger mb-2 w-100">Exit</button>
+
+        <div class="mt-3 text-center">
+            <p class="mb-1"><strong>Player X:</strong> 🔵</p>
+            <p><strong>Player O:</strong> ❌</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    #board {
+        border-collapse: collapse;
+        width: 300px;
+        height: 300px;
+    }
+
+    .cell {
+        width: 100px;
+        height: 100px;
+        border: 2px solid #333;
+        font-size: 48px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+        .cell:hover {
+            background-color: #e7f1ff;
+            transform: scale(1.05);
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+</style>
+
+<script>
+    let board = Array(3).fill().map(() => Array(3).fill(''));
+    let currentPlayer = 'X';
+    let gameActive = false;
+
+    const cells = document.querySelectorAll(".cell");
+    const status = document.getElementById("status");
+
+    function drawBoard() {
+        cells.forEach((cell, idx) => {
+            const r = Math.floor(idx / 3), c = idx % 3;
+            cell.textContent = board[r][c];
+            cell.classList.toggle('taken', board[r][c] !== '');
+        });
+    }
+
+    function checkWinner() {
+        for (let i = 0; i < 3; i++) {
+            if (board[i][0] && board[i][0] === board[i][1] && board[i][1] === board[i][2]) return board[i][0];
+            if (board[0][i] && board[0][i] === board[1][i] && board[1][i] === board[2][i]) return board[0][i];
+        }
+        if (board[0][0] && board[0][0] === board[1][1] && board[1][1] === board[2][2]) return board[0][0];
+        if (board[0][2] && board[0][2] === board[1][1] && board[1][1] === board[2][0]) return board[0][2];
+        return board.flat().includes('') ? null : 'Draw';
+    }
+
+    cells.forEach((cell, idx) => {
+        const r = Math.floor(idx / 3), c = idx % 3;
+        cell.addEventListener("click", () => {
+            if (!gameActive) return;
+            if (!board[r][c]) {
+                board[r][c] = currentPlayer;
+                drawBoard();
+                const winner = checkWinner();
+                if (winner) {
+                    status.textContent = winner === 'Draw' ? "🤝 It's a Draw!" : `🏆 Player ${winner} Wins!`;
+                    gameActive = false;
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    status.textContent = `Player ${currentPlayer}'s Turn`;
+                }
+            }
+        });
+    });
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+        resetBoard();
+        gameActive = true;
+        status.textContent = `Player ${currentPlayer}'s Turn`;
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+        resetBoard();
+        status.textContent = '';
+        gameActive = false;
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+        resetBoard();
+        gameActive = true;
+        status.textContent = `Player ${currentPlayer}'s Turn`;
+    });
+
+    document.getElementById("exitBtn").addEventListener("click", () => {
+        if (confirm("Exit Tic-Tac-Toe Game?")) {
+            window.location.href = '/Game/Index';
+        }
+    });
+
+    function resetBoard() {
+        board = Array(3).fill().map(() => Array(3).fill(''));
+        currentPlayer = 'X';
+        drawBoard();
+    }
+
+    drawBoard();
+</script>

@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "Cute Doll Runner";
+}
+
+<h2 class="text-center text-primary mb-4">💫 Cute Doll Jump Game</h2>
+
+<div class="d-flex justify-content-center">
+    <div id="gameArea">
+        <div id="doll"></div>
+        <div id="obstacle"></div>
+        <div id="ground"></div>
+    </div>
+</div>
+
+<div class="text-center mt-3">
+    <p id="scoreText" class="fw-bold fs-5 text-success">Score: 0</p>
+    <button id="startBtn" class="btn btn-success me-2">Start</button>
+    <button id="resetBtn" class="btn btn-warning">Reset</button>
+</div>
+
+<style>
+    #gameArea {
+        position: relative;
+        width: 700px;
+        height: 300px;
+        background: linear-gradient(to top, #b0e0ff, #f6faff);
+        border: 3px solid #333;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        background: linear-gradient(to right, #4CAF50, #8BC34A);
+    }
+
+    #doll {
+        position: absolute;
+        left: 100px;
+        bottom: 40px;
+        width: 60px;
+        height: 60px;
+        background: url('https://cdn-icons-png.flaticon.com/512/620/620851.png') no-repeat center;
+        background-size: cover;
+        transition: bottom 0.2s;
+    }
+
+    #obstacle {
+        position: absolute;
+        bottom: 40px;
+        right: -60px;
+        width: 50px;
+        height: 50px;
+        background: url('https://cdn-icons-png.flaticon.com/512/616/616408.png') no-repeat center;
+        background-size: cover;
+        animation: moveObstacle 2s linear infinite;
+    }
+
+    /* ✅ Escape Razor's  with @@ */
+    @@keyframes moveObstacle {
+        from {
+            right: -60px;
+        }
+        to {
+            right: 750px;
+        }
+    }
+
+    .jump {
+        animation: jump 0.6s ease-out;
+    }
+
+    @@keyframes jump {
+        0% {
+            bottom: 40px;
+        }
+        50% {
+            bottom: 140px;
+        }
+        100% {
+            bottom: 40px;
+        }
+    }
+</style>
+
+<script>
+    const doll = document.getElementById("doll");
+    const obstacle = document.getElementById("obstacle");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const scoreText = document.getElementById("scoreText");
+
+    let score = 0;
+    let gameOver = false;
+    let scoreInterval;
+
+    document.addEventListener("keydown", e => {
+        if (e.code === "Space" || e.key === "ArrowUp") {
+            jump();
+        }
+    });
+
+    startBtn.addEventListener("click", startGame);
+    resetBtn.addEventListener("click", resetGame);
+
+    function startGame() {
+        if (gameOver) resetGame();
+        obstacle.style.animationPlayState = "running";
+        scoreInterval = setInterval(() => {
+            score++;
+            scoreText.textContent = "Score: " + score;
+        }, 100);
+    }
+
+    function resetGame() {
+        score = 0;
+        scoreText.textContent = "Score: 0";
+        gameOver = false;
+        obstacle.style.animation = "none";
+        void obstacle.offsetWidth; // reset animation
+        obstacle.style.animation = "moveObstacle 2s linear infinite";
+        obstacle.style.animationPlayState = "paused";
+        clearInterval(scoreInterval);
+    }
+
+    function jump() {
+        if (doll.classList.contains("jump")) return;
+        doll.classList.add("jump");
+        setTimeout(() => {
+            doll.classList.remove("jump");
+        }, 600);
+    }
+
+    // Collision Detection
+    setInterval(() => {
+        const dollBottom = parseInt(window.getComputedStyle(doll).getPropertyValue("bottom"));
+        const obstacleRight = parseInt(window.getComputedStyle(obstacle).getPropertyValue("right"));
+
+        if (obstacleRight > 530 && obstacleRight < 610 && dollBottom < 80 && !gameOver) {
+            gameOver = true;
+            obstacle.style.animationPlayState = "paused";
+            clearInterval(scoreInterval);
+            alert("💥 Game Over! Your Score: " + score);
+        }
+    }, 10);
+
+    // Start initially paused
+    obstacle.style.animationPlayState = "paused";
+</script>

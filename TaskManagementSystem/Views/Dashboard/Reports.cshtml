@@ -1,0 +1,30 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<h3>Reports</h3>
+
+<a asp-action="ReportsPdf" class="btn btn-primary mb-3">Download PDF</a>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var report in Model)
+        {
+            <tr>
+                <td>@report.Id</td>
+                <td>@report.Name</td>
+                <td>@report.Date.ToString("yyyy-MM-dd")</td>
+                <td>@report.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>

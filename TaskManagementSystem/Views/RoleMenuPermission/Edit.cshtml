@@ -1,0 +1,40 @@
+﻿@model TaskManagementSystem.Models.Permission.RoleMenuPermission
+
+@{
+    ViewData["Title"] = "Edit Role Permission";
+}
+
+<h2>Add Role Permission</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label>Role</label>
+        <select asp-for="RoleId" class="form-control" asp-items="ViewBag.Roles">
+            <option value="">-- Select Role --</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Menu</label>
+        <select asp-for="MenuId" class="form-control" asp-items="ViewBag.Menus">
+            <option value="">-- Select Menu --</option>
+        </select>
+    </div>
+    <div class="form-check">
+        <input asp-for="CanView" class="form-check-input" />
+        <label asp-for="CanView" class="form-check-label"></label>
+    </div>
+    <div class="form-check">
+        <input asp-for="CanCreate" class="form-check-input" />
+        <label asp-for="CanCreate" class="form-check-label"></label>
+    </div>
+    <div class="form-check">
+        <input asp-for="CanEdit" class="form-check-input" />
+        <label asp-for="CanEdit" class="form-check-label"></label>
+    </div>
+    <div class="form-check">
+        <input asp-for="CanDelete" class="form-check-input" />
+        <label asp-for="CanDelete" class="form-check-label"></label>
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Save</button>
+    <a asp-action="Index" class="btn btn-secondary mt-2">Back</a>
+</form>

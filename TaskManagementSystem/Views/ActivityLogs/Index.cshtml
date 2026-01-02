@@ -1,0 +1,544 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.ActivityLog>
+
+@{
+    ViewData["Title"] = "Activity Logs";
+    int PageSize = 10;
+}
+
+<style>
+    .logs-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+        .logs-header h2 {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+
+    @@media (min-width: 768px) {
+        .logs-header h2
+
+    {
+        font-size: 2.25rem;
+    }
+
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+        .filter-card h5 {
+            color: #2c3e50;
+            margin-bottom: 1.25rem;
+            font-weight: 600;
+        }
+
+    .filter-input-group {
+        position: relative;
+    }
+
+        .filter-input-group i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            z-index: 10;
+        }
+
+        .filter-input-group input {
+            padding-left: 38px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+            .filter-input-group input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            }
+
+    .action-button {
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+    .log-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+    }
+
+        .log-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            transform: translateX(4px);
+        }
+
+    .log-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .log-user {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.05rem;
+    }
+
+    .log-action-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    }
+
+    .log-info-row {
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+        .log-info-row i {
+            color: #667eea;
+            margin-top: 2px;
+            min-width: 18px;
+        }
+
+    .log-info-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 90px;
+    }
+
+    .log-info-value {
+        font-size: 0.875rem;
+        color: #2c3e50;
+        word-break: break-word;
+    }
+
+    .log-timestamp {
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .desktop-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+        .desktop-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+            .desktop-table thead th {
+                border: none;
+                padding: 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.85rem;
+                letter-spacing: 0.5px;
+            }
+
+        .desktop-table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+            .desktop-table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .desktop-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+    .mobile-only {
+        display: block;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+
+    @@media (min-width: 992px) {
+        .mobile-only
+
+    {
+        display: none;
+    }
+
+    .desktop-only {
+        display: block;
+    }
+
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #d0d0d0;
+            margin-bottom: 1rem;
+        }
+
+    .pagination-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-top: 2rem;
+    }
+
+    .pagination-info {
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    @@media (min-width: 768px) {
+        .pagination-info
+
+    {
+        margin-bottom: 0;
+        text-align: left;
+    }
+
+    }
+
+    .pagination {
+        margin: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .pagination .page-item {
+            margin: 0.25rem;
+        }
+
+        .pagination .page-link {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            border: 2px solid #e0e0e0;
+            color: #667eea;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+            .pagination .page-link:hover {
+                background-color: #667eea;
+                color: white;
+                border-color: #667eea;
+                transform: translateY(-2px);
+            }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .stats-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.2);
+        font-size: 0.875rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+    }
+</style>
+
+<div class="">
+    <!-- Header -->
+    <div class="logs-header">
+        <div class="row align-items-center">
+            <div class="col-12 col-md-6 text-center text-md-start mb-3 mb-md-0">
+                <h2><i class="bi bi-clock-history"></i> @ViewData["Title"]</h2>
+                <p class="mb-0 opacity-75">Track all system activities and user actions</p>
+            </div>
+            <div class="col-12 col-md-6 text-center text-md-end">
+                <a href="@Url.Action("Report", new { user = ViewData["CurrentUser"], from = ViewData["From"], to = ViewData["To"] })"
+                   class="btn btn-light btn-lg action-button @(Model.Any() ? "" : "disabled")">
+                    <i class="bi bi-file-earmark-pdf"></i> Download Report
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <h5><i class="bi bi-funnel"></i> Filter Activity Logs</h5>
+        <form method="get" class="row g-3">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label class="form-label small text-muted fw-bold">User Name</label>
+                <div class="filter-input-group">
+                    <i class="bi bi-person"></i>
+                    <input type="text" name="user" value="@ViewData["CurrentUser"]"
+                           class="form-control" placeholder="Search user..." />
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <label class="form-label small text-muted fw-bold">Action Type</label>
+                <div class="filter-input-group">
+                    <i class="bi bi-lightning"></i>
+                    <input type="text" name="Useraction" value="@ViewData["CurrectAction"]"
+                           class="form-control" placeholder="Search action..." />
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label class="form-label small text-muted fw-bold">From Date</label>
+                <div class="filter-input-group">
+                    <i class="bi bi-calendar"></i>
+                    <input type="date" name="from" value="@ViewData["From"]" class="form-control" />
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+                <label class="form-label small text-muted fw-bold">To Date</label>
+                <div class="filter-input-group">
+                    <i class="bi bi-calendar-check"></i>
+                    <input type="date" name="to" value="@ViewData["To"]" class="form-control" />
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-2 d-flex flex-column justify-content-end">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary action-button flex-fill">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary action-button flex-fill">
+                        <i class="bi bi-x-circle"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h4 class="text-muted mb-2">No Activity Logs Found</h4>
+            <p class="text-muted">Try adjusting your filters or check back later</p>
+        </div>
+    }
+    else
+    {
+        <!-- Mobile Card View -->
+        <div class="mobile-only">
+            @{
+                int currentPage = (int)ViewData["CurrentPage"]!;
+                int mobileIndex = ((currentPage - 1) * PageSize) + 1;
+                foreach (var log in Model)
+                {
+                    <div class="log-card">
+                        <div class="log-card-header">
+                            <div>
+                                <div class="log-user">
+                                    <i class="bi bi-person-circle"></i> @log.UserName
+                                </div>
+                                <div class="log-timestamp mt-1">
+                                    <i class="bi bi-clock"></i>
+                                    @log.CreatedAt.ToString("dd-MMM-yyyy hh:mm tt")
+                                </div>
+                            </div>
+                            <span class="log-action-badge">@log.ActionType</span>
+                        </div>
+
+                        <div class="log-info-row">
+                            <i class="bi bi-card-text"></i>
+                            <div class="flex-grow-1">
+                                <div class="log-info-label">Description</div>
+                                <div class="log-info-value">@log.Description</div>
+                            </div>
+                        </div>
+
+                        <div class="log-info-row">
+                            <i class="bi bi-globe"></i>
+                            <div class="flex-grow-1">
+                                <div class="log-info-label">IP Address</div>
+                                <div class="log-info-value">@log.IpAddress</div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-2">
+                            <small class="text-muted">#@mobileIndex</small>
+                        </div>
+                    </div>
+                    mobileIndex++;
+                }
+            }
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="desktop-only">
+            <div class="table-responsive">
+                <table class="table desktop-table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:5%">#</th>
+                            <th style="width:15%"><i class="bi bi-person"></i> User</th>
+                            <th style="width:15%"><i class="bi bi-lightning"></i> Action</th>
+                            <th style="width:25%"><i class="bi bi-card-text"></i> Description</th>
+                            <th style="width:15%"><i class="bi bi-globe"></i> IP Address</th>
+                            <th style="width:25%"><i class="bi bi-clock"></i> Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int desktopIndex = ((currentPage - 1) * PageSize) + 1;
+                            foreach (var log in Model)
+                            {
+                                <tr>
+                                    <td><strong>@desktopIndex</strong></td>
+                                    <td>@log.UserName</td>
+                                    <td><span class="log-action-badge">@log.ActionType</span></td>
+                                    <td>@log.Description</td>
+                                    <td><code class="text-primary">@log.IpAddress</code></td>
+                                    <td>
+                                        <i class="bi bi-calendar3 text-muted"></i>
+                                        @log.CreatedAt.ToString("dd-MMM-yyyy hh:mm tt")
+                                    </td>
+                                </tr>
+                                desktopIndex++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        @if ((int)ViewData["TotalPages"]! > 1)
+        {
+            <div class="pagination-wrapper">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-6">
+                        <div class="pagination-info">
+                            @{
+                                int totalPages = (int)ViewData["TotalPages"]!;
+                                int totalCount = (int)ViewData["TotalCount"]!;
+                                int startItem = ((currentPage - 1) * PageSize) + 1;
+                                int endItem = Math.Min(currentPage * PageSize, totalCount);
+                            }
+                            <span class="text-muted">
+                                Showing <strong class="text-primary">@startItem–@endItem</strong> of
+                                <strong class="text-primary">@totalCount</strong> logs
+                                <span class="d-none d-sm-inline">(Page @currentPage of @totalPages)</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <nav>
+                            <ul class="pagination justify-content-center justify-content-md-end">
+                                @{
+                                    string? currentUser = ViewData["CurrentUser"]?.ToString();
+                                    string? from = ViewData["From"]?.ToString();
+                                    string? to = ViewData["To"]?.ToString();
+                                    string? useraction = ViewData["CurrectAction"]?.ToString();
+
+                                    int startPage = Math.Max(currentPage - 2, 1);
+                                    int endPage = Math.Min(startPage + 4, totalPages);
+                                    startPage = Math.Max(endPage - 4, 1);
+                                }
+
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = 1, user = currentUser, Useraction = useraction, from, to })">
+                                        <i class="bi bi-chevron-bar-left"></i>
+                                    </a>
+                                </li>
+
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, user = currentUser, Useraction = useraction, from, to })">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { page = i, user = currentUser, Useraction = useraction, from, to })">@i</a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, user = currentUser, Useraction = useraction, from, to })">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = totalPages, user = currentUser, Useraction = useraction, from, to })">
+                                        <i class="bi bi-chevron-bar-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

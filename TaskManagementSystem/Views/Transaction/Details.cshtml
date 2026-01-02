@@ -1,0 +1,38 @@
+﻿@model TaskManagementSystem.Models.Transaction
+
+@{
+    ViewData["Title"] = "Transaction Details";
+}
+
+<h2 class="text-primary mb-4">Transaction Details</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Person Name</dt>
+            <dd class="col-sm-9">@Model.PersonName</dd>
+
+            <dt class="col-sm-3">Type</dt>
+            <dd class="col-sm-9">@Model.Type</dd>
+
+            <dt class="col-sm-3">Amount</dt>
+            <dd class="col-sm-9">@Model.Amount.ToString("0.00") ৳</dd>
+
+            <dt class="col-sm-3">Date</dt>
+            <dd class="col-sm-9">@Model.Date.ToString("dd-MM-yyyy")</dd>
+
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3">Added By</dt>
+            <dd class="col-sm-9">@Model.CreatedByUserName</dd>
+        </dl>
+    </div>
+</div>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary mt-3">
+    <i class="bi bi-pencil-square"></i> Edit
+</a>
+<a asp-action="Index" class="btn btn-secondary mt-3">
+    <i class="bi bi-arrow-left-circle"></i> Back
+</a>

@@ -1,0 +1,385 @@
+﻿@model IEnumerable<TaskManagementSystem.Models.Permission.Menu>
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+
+@{
+    ViewData["Title"] = "Menus";
+    int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
+    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Menu");
+
+    bool canView = permission?.CanView ?? false;
+    bool canCreate = permission?.CanCreate ?? false;
+    bool canEdit = permission?.CanEdit ?? false;
+    bool canDelete = permission?.CanDelete ?? false;
+}
+
+@if (!canView)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> You don't have permission to view menus.
+    </div>
+    return;
+}
+
+<div class="container-fluid px-2 px-md-4">
+    <h2 class="mb-4">Menus</h2>
+
+    <div class="row mb-3 g-2">
+        <div class="col-12 col-md-7 col-lg-6">
+            <div class="input-group">
+                <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search by Title/Controller/Action" value="@ViewBag.Search" />
+                <button id="btnSearch" class="btn btn-primary" type="button" title="Search">
+                    <i class="bi bi-search"></i> <span class="d-none d-sm-inline">Search</span>
+                </button>
+                <button id="clearSearch" class="btn btn-outline-secondary" type="button" title="Clear Search">✖</button>
+            </div>
+        </div>
+        <div class="col-12 col-md-5 col-lg-6 text-md-end">
+            @if (canCreate)
+            {
+                <a asp-action="Create" class="btn btn-success w-100 w-md-auto">
+                    <i class="bi bi-plus-circle"></i> Create New Menu
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="table-responsive d-none d-lg-block">
+        <table class="table table-bordered table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Title</th>
+                    <th>Parent Menu</th>
+                    <th>Controller</th>
+                    <th>Action</th>
+                    <th class="text-center">Is Active</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var menu in Model)
+                    {
+                        <tr>
+                            <td>@menu.Title</td>
+                            <td>@(menu.ParentId.HasValue ? menu.ParentId.ToString() : "None")</td>
+                            <td>@menu.ControllerName</td>
+                            <td>@menu.ActionName</td>
+                            <td class="text-center">
+                                @if (canEdit)
+                                {
+                                    <input type="checkbox" class="isActiveCheckbox form-check-input" data-id="@menu.Id" @(menu.IsActive ? "checked" : "") />
+                                }
+                                else
+                                {
+                                    <span class="badge @(menu.IsActive ? "bg-success" : "bg-secondary")">
+                                        @(menu.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (canEdit)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@menu.Id" class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                }
+                                @if (canDelete)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@menu.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                }
+
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No menus found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tablet Card View (medium screens) -->
+    <div class="d-none d-md-block d-lg-none">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var menu in Model)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <h5 class="card-title mb-1">@menu.Title</h5>
+                                <p class="text-muted mb-2 small">
+                                    <strong>Parent:</strong> @(menu.ParentId.HasValue ? menu.ParentId.ToString() : "None")
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                @if (canEdit)
+                                {
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="isActiveCheckbox form-check-input"
+                                               role="switch" data-id="@menu.Id" @(menu.IsActive ? "checked" : "") />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="badge @(menu.IsActive ? "bg-success" : "bg-secondary")">
+                                        @(menu.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block"><i class="bi bi-controller"></i> <strong>Controller:</strong></small>
+                                <span class="badge bg-info text-dark">@menu.ControllerName</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block"><i class="bi bi-gear"></i> <strong>Action:</strong></small>
+                                <span class="badge bg-info text-dark">@menu.ActionName</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            @if (canEdit)
+                            {
+                                <a asp-action="Edit" asp-route-id="@menu.Id" class="btn btn-warning btn-sm flex-fill">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            }
+                            @if (canDelete)
+                            {
+                                <form asp-action="Delete" asp-route-id="@menu.Id" method="post" style="display:inline;" class="flex-fill">
+                                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            }
+
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> No menus found.
+            </div>
+        }
+    </div>
+
+    <!-- Mobile Card View (small screens) -->
+    <div class="d-md-none">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var menu in Model)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">@menu.Title</h5>
+                            @if (canEdit)
+                            {
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="isActiveCheckbox form-check-input"
+                                           role="switch" data-id="@menu.Id" @(menu.IsActive ? "checked" : "") />
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="badge @(menu.IsActive ? "bg-success" : "bg-secondary")">
+                                    @(menu.IsActive ? "Active" : "Inactive")
+                                </span>
+                            }
+                        </div>
+
+                        <p class="text-muted mb-2 small">
+                            <i class="bi bi-diagram-3"></i> <strong>Parent:</strong> @(menu.ParentId.HasValue ? menu.ParentId.ToString() : "None")
+                        </p>
+
+                        <div class="mb-2">
+                            <span class="badge bg-info text-dark me-1">
+                                <i class="bi bi-controller"></i> @menu.ControllerName
+                            </span>
+                            <span class="badge bg-info text-dark">
+                                <i class="bi bi-gear"></i> @menu.ActionName
+                            </span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            @if (canEdit)
+                            {
+                                <a asp-action="Edit" asp-route-id="@menu.Id" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            }
+                            @if (canDelete)
+                            {
+                                <form asp-action="Delete" asp-route-id="@menu.Id" method="post">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            }
+
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> No menus found.
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if ((int)ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-2">
+            <!-- Info -->
+            <div class="text-center text-md-start">
+                @{
+                    int currentPage = (int)ViewBag.CurrentPage;
+                    int totalPages = (int)ViewBag.TotalPages;
+                    int totalCount = (int)ViewBag.TotalCount;
+                    int pageSize = 10;
+                    int startItem = ((currentPage - 1) * pageSize) + 1;
+                    int endItem = Math.Min(currentPage * pageSize, totalCount);
+                }
+                <small class="text-muted">
+                    Showing @startItem–@endItem of @totalCount menus (Page @currentPage of @totalPages)
+                </small>
+            </div>
+
+            <!-- Pagination -->
+            <nav>
+                <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
+                    @{
+                        string? search = ViewBag.Search?.ToString();
+                        int startPage = Math.Max(currentPage - 2, 1);
+                        int endPage = Math.Min(startPage + 4, totalPages);
+                        startPage = Math.Max(endPage - 4, 1);
+                    }
+
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = 1, search })">
+                            <span class="d-none d-sm-inline">&laquo; First</span>
+                            <span class="d-sm-none">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, search })">
+                            <span class="d-none d-sm-inline">Previous</span>
+                            <span class="d-sm-none">&lt;</span>
+                        </a>
+                    </li>
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i, search })">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, search })">
+                            <span class="d-none d-sm-inline">Next</span>
+                            <span class="d-sm-none">&gt;</span>
+                        </a>
+                    </li>
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = totalPages, search })">
+                            <span class="d-none d-sm-inline">Last &raquo;</span>
+                            <span class="d-sm-none">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // ✅ Toggle IsActive via AJAX
+        $(document).on('change', '.isActiveCheckbox', function () {
+            const checkbox = $(this);
+            const id = checkbox.data('id');
+            const isActive = checkbox.is(':checked');
+
+            $.ajax({
+                url: '@Url.Action("ToggleActive")',
+                type: 'POST',
+                data: { id: id, isActive: isActive },
+                success: function (res) {
+                    if (!res.success) {
+                        alert("⚠️ Failed to update status.");
+                        checkbox.prop('checked', !isActive); // Revert
+                    }
+                },
+                error: function () {
+                    alert("⚠️ Error updating status.");
+                    checkbox.prop('checked', !isActive); // Revert
+                }
+            });
+        });
+
+        // 🔍 Search functionality
+        let typingTimer;
+        const delay = 500;
+
+        $("#searchBox").on("keyup", function () {
+            clearTimeout(typingTimer);
+            const searchValue = $(this).val();
+
+            typingTimer = setTimeout(function () {
+                window.location.href = '@Url.Action("Index")?search=' + encodeURIComponent(searchValue);
+            }, delay);
+        });
+
+        // Clear typing timer on keydown
+        $("#searchBox").on("keydown", function () {
+            clearTimeout(typingTimer);
+        });
+
+        // Search button click
+        $('#btnSearch').on('click', function () {
+            const val = $('#searchBox').val();
+            window.location.href = '@Url.Action("Index")?search=' + encodeURIComponent(val);
+        });
+
+        // Enter key search
+        $('#searchBox').on('keypress', function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $('#btnSearch').click();
+            }
+        });
+
+        // Clear Search button
+        $('#clearSearch').on('click', function () {
+            $('#searchBox').val('');
+            window.location.href = '@Url.Action("Index")';
+        });
+    </script>
+}
