@@ -11,7 +11,6 @@ namespace TaskManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
-
         public TaskController(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
