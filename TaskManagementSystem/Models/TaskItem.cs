@@ -3,18 +3,31 @@ using TaskManagementSystem.Common;
 
 namespace TaskManagementSystem.Models
 {
-    public class TaskItem : Base
+    public class TaskItem
     {
-        public int UserId { get; set; }
+        public int Id { get; set; }
 
-        [Required(ErrorMessage = "Please enter a title.")]
-        [StringLength(100, ErrorMessage = "Title cannot be longer than 100 characters.")]
+        [Required(ErrorMessage = "Title is required")]
+        [StringLength(200)]
         public string Title { get; set; }
 
-        [Required(ErrorMessage = "Please enter a description.")]
-        [StringLength(1000, ErrorMessage = "Description cannot be longer than 1000 characters.")]
+        [Required(ErrorMessage = "Description is required")]
+        [StringLength(1000)]
         public string Description { get; set; }
 
-        public string? ImagePath { get; set; } // uploaded image path
+        // NEW: Add Status property
+        [Required(ErrorMessage = "Status is required")]
+        [StringLength(50)]
+        public string Status { get; set; } = "Pending"; // Default value
+
+        public string? ImagePath { get; set; }
+
+        public int UserId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
     }
 }

@@ -4,35 +4,346 @@
     ViewData["Title"] = "Edit Task";
 }
 
-<h2 class="mb-4">@ViewData["Title"]</h2>
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 30px auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 30px;
+    }
 
-<form asp-action="Edit" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <div class="mb-3">
-        <label asp-for="Title" class="form-label"></label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Upload New Image (optional)</label>
-        <input type="file" name="ImageFile" class="form-control" />
-        @if (!string.IsNullOrEmpty(Model.ImagePath))
+    .page-title {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #f59e0b;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+            .form-group label .required {
+                color: #ef4444;
+            }
+
+        .form-group .form-control,
+        .form-group .form-select {
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+
+            .form-group .form-control:focus,
+            .form-group .form-select:focus {
+                border-color: #f59e0b;
+                box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+                outline: none;
+            }
+
+        .form-group textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+    .text-danger {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 5px;
+    }
+
+    .btn {
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+        }
+
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+    }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-wrapper label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 15px;
+            background: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+            .file-input-wrapper label:hover {
+                background: #f3f4f6;
+                border-color: #f59e0b;
+                color: #f59e0b;
+            }
+
+            .file-input-wrapper label i {
+                margin-right: 8px;
+                font-size: 1.2rem;
+            }
+
+    .current-image {
+        margin-top: 10px;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+        .current-image img {
+            max-width: 250px;
+            max-height: 250px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .current-image p {
+            margin-top: 10px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+    .image-preview {
+        margin-top: 15px;
+        text-align: center;
+    }
+
+        .image-preview img {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+    .status-info {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+        font-size: 0.85rem;
+    }
+
+        .status-info .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+    .info-box {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+        .info-box i {
+            color: #3b82f6;
+            margin-right: 8px;
+        }
+
+    @@media (max-width: 768px) {
+        .form-container {
+            margin: 15px;
+            padding: 20px;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+
+            .button-group .btn {
+                width: 100%;
+            }
+
+        .status-info {
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <h2 class="page-title">
+        <i class="bi bi-pencil-square"></i> Edit Task
+    </h2>
+
+    <div class="info-box">
+        <i class="bi bi-info-circle"></i>
+        <strong>Task ID:</strong> @Model.Id &nbsp;|&nbsp;
+        <strong>Created:</strong> @Model.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")
+        @if (Model.UpdatedAt.HasValue)
         {
-            <img src="@Model.ImagePath" width="100" class="mt-2" />
+            <span>&nbsp;|&nbsp; <strong>Last Updated:</strong> @Model.UpdatedAt.Value.ToString("dd MMM yyyy, hh:mm tt")</span>
         }
     </div>
-    <button type="submit" class="btn btn-success">Update</button>
-    <a asp-action="Index" class="btn btn-secondary ms-2">Back</a>
-</form>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="taskForm">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CreatedAt" />
+        <input type="hidden" asp-for="UserId" />
+        <input type="hidden" asp-for="IsDeleted" />
+        <input type="hidden" asp-for="ImagePath" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="Title">
+                Task Title <span class="required">*</span>
+            </label>
+            <input asp-for="Title" class="form-control" placeholder="Enter task title..." />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">
+                Description <span class="required">*</span>
+            </label>
+            <textarea asp-for="Description" class="form-control" placeholder="Describe your task in detail..."></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Status">
+                Status <span class="required">*</span>
+            </label>
+            <select asp-for="Status" class="form-select">
+                <option value="Pending">⏳ Pending</option>
+                <option value="In Progress">🔄 In Progress</option>
+                <option value="Completed">✅ Completed</option>
+            </select>
+            <div class="status-info">
+                <div class="status-item">
+                    <span>⏳</span>
+                    <span>Pending: Not started yet</span>
+                </div>
+                <div class="status-item">
+                    <span>🔄</span>
+                    <span>In Progress: Currently working</span>
+                </div>
+                <div class="status-item">
+                    <span>✅</span>
+                    <span>Completed: Finished</span>
+                </div>
+            </div>
+            <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label>Task Image</label>
+
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <div class="current-image">
+                    <img src="@Model.ImagePath" alt="Current Task Image" />
+                    <p><i class="bi bi-image"></i> Current Image (Upload new to replace)</p>
+                </div>
+            }
+
+            <div class="file-input-wrapper">
+                <input type="file" name="ImageFile" id="ImageFile" accept="image/*" onchange="previewImage(event)" />
+                <label for="ImageFile">
+                    <i class="bi bi-cloud-upload"></i>
+                    <span id="file-label">@(string.IsNullOrEmpty(Model.ImagePath) ? "Click to upload image" : "Click to replace image")</span>
+                </label>
+            </div>
+
+            <div class="image-preview" id="imagePreview" style="display: none;">
+                <p style="color: #10b981; font-weight: 600; margin-top: 10px;">
+                    <i class="bi bi-check-circle"></i> New Image Preview:
+                </p>
+                <img id="preview" src="#" alt="Preview" />
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-save"></i> Update Task
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            const preview = document.getElementById('preview');
+            const imagePreview = document.getElementById('imagePreview');
+            const fileLabel = document.getElementById('file-label');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    fileLabel.textContent = input.files[0].name;
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                imagePreview.style.display = 'none';
+                fileLabel.textContent = '@(string.IsNullOrEmpty(Model.ImagePath) ? "Click to upload image" : "Click to replace image")';
+            }
+        }
+    </script>
 }

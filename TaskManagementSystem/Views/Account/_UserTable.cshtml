@@ -2,8 +2,9 @@
 @inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
 @{
     int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
-    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
-    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Expense");
+    string? UserName = Convert.ToString(Context.Session.GetString("UserName"));
+    var tempdata = UserName;    
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, tempdata, "Account");
     bool canView = permission?.CanView ?? false;
     bool canCreate = permission?.CanCreate ?? false;
     bool canEdit = permission?.CanEdit ?? false;

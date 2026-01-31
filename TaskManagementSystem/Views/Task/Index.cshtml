@@ -1,21 +1,34 @@
 ﻿@model IEnumerable<TaskManagementSystem.Models.TaskItem>
-@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper
+@inject TaskManagementSystem.Helpers.PermissionHelper _permissionHelper;
 @using TaskManagementSystem.Models.Permission
 @{
     ViewData["Title"] = "📋 Task Management";
     var searchText = ViewData["Search"] as string ?? "";
+    var statusFilter = ViewData["Status"] as string ?? "";
     int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
-    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
-    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Task");
+    string userName = Context?.Session?.GetString("UserName") ?? string.Empty;
+
+    var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, userName, "Task");
     bool canView = permission?.CanView ?? false;
     bool canCreate = permission?.CanCreate ?? false;
     bool canEdit = permission?.CanEdit ?? false;
     bool canDelete = permission?.CanDelete ?? false;
+
+    // Statistics
+    int totalTasks = Convert.ToInt32(ViewData["TotalTasks"] ?? 0);
+    int pendingCount = Convert.ToInt32(ViewData["PendingCount"] ?? 0);
+    int inProgressCount = Convert.ToInt32(ViewData["InProgressCount"] ?? 0);
+    int completedCount = Convert.ToInt32(ViewData["CompletedCount"] ?? 0);
+    double pendingPercent = Convert.ToDouble(ViewData["PendingPercent"] ?? 0);
+    double inProgressPercent = Convert.ToDouble(ViewData["InProgressPercent"] ?? 0);
+    double completedPercent = Convert.ToDouble(ViewData["CompletedPercent"] ?? 0);
 }
 
 <style>
     .maincontainer {
         margin: 0 auto;
+        max-width: 1400px;
+        padding: 20px;
     }
 
     .page-header {
@@ -33,6 +46,132 @@
             font-weight: 600;
         }
 
+    /* Statistics Cards */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-left: 4px solid;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .stat-card.total {
+            border-left-color: #6366f1;
+        }
+
+        .stat-card.pending {
+            border-left-color: #ef4444;
+        }
+
+        .stat-card.in-progress {
+            border-left-color: #f59e0b;
+        }
+
+        .stat-card.completed {
+            border-left-color: #10b981;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .stat-percent {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .stat-card.total .stat-icon,
+        .stat-card.total .stat-value {
+            color: #6366f1;
+        }
+
+        .stat-card.pending .stat-icon,
+        .stat-card.pending .stat-value {
+            color: #ef4444;
+        }
+
+        .stat-card.in-progress .stat-icon,
+        .stat-card.in-progress .stat-value {
+            color: #f59e0b;
+        }
+
+        .stat-card.completed .stat-icon,
+        .stat-card.completed .stat-value {
+            color: #10b981;
+        }
+
+    /* Progress Bar */
+    .progress-container {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+        .progress-container h5 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+    .progress {
+        height: 30px;
+        border-radius: 8px;
+        background-color: #f3f4f6;
+        overflow: visible;
+    }
+
+    .progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: width 0.6s ease;
+    }
+
+        .progress-bar.bg-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .progress-bar.bg-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .progress-bar.bg-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
     .action-bar {
         background: white;
         padding: 20px;
@@ -41,32 +180,42 @@
         margin-bottom: 25px;
     }
 
-    .search-box {
-        position: relative;
+    .filter-section {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: end;
     }
 
-        .search-box input {
-            border-radius: 10px;
+        .filter-section .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 0;
+        }
+
+        .filter-section label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .filter-section select,
+        .filter-section input {
+            border-radius: 8px;
             border: 2px solid #e2e8f0;
-            padding: 12px 45px 12px 20px;
+            padding: 10px 15px;
             transition: all 0.3s;
             width: 100%;
         }
 
-            .search-box input:focus {
+            .filter-section select:focus,
+            .filter-section input:focus {
                 border-color: #6366f1;
                 box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
                 outline: none;
             }
-
-        .search-box .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            font-size: 1.2rem;
-        }
 
     .btn {
         border-radius: 8px;
@@ -107,14 +256,40 @@
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
 
-    .alert-danger {
-        border-radius: 12px;
-        border: none;
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-        border-left: 4px solid #ef4444;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+    .btn-outline-secondary {
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
     }
+
+        .btn-outline-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+    /* Status Badge */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .status-badge.pending {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+        }
+
+        .status-badge.in-progress {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+        }
+
+        .status-badge.completed {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+        }
 
     /* Table Styles */
     .table-container {
@@ -253,98 +428,74 @@
             color: #9ca3af;
         }
 
-    /* Stats Badge */
-    .stats-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        color: #92400e;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-left: 15px;
+    /* Alert Messages */
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-left: 4px solid #10b981;
+        color: #065f46;
     }
 
     /* Responsive */
     @@media (max-width: 992px) {
-        .action-bar .d-flex
-
-    {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .search-box {
-        order: -1;
-    }
-
-    .btn-group {
-        display: flex;
-        gap: 10px;
-    }
-
-        .btn-group .btn {
-            flex: 1;
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
         }
 
+        .filter-section {
+            flex-direction: column;
+        }
+
+            .filter-section .form-group {
+                width: 100%;
+            }
     }
 
     @@media (max-width: 768px) {
-        .maincontainer
-
-    {
-        padding: 15px;
-    }
-
-    .page-header {
-        padding: 20px;
-    }
-
-        .page-header h2 {
-            font-size: 1.4rem;
+        .maincontainer {
+            padding: 15px;
         }
 
-    .stats-badge {
-        display: block;
-        margin-left: 0;
-        margin-top: 10px;
-        text-align: center;
-    }
-
-    .table-container {
-        display: none;
-    }
-
-    .task-card {
-        display: block;
-    }
-
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-    }
-
-    }
-
-    @@media (max-width: 576px) {
-        .page-header h2
-
-    {
-        font-size: 1.2rem;
-    }
-
-    .action-bar {
-        padding: 15px;
-    }
-
-    .task-card {
-        padding: 15px;
-    }
-
-        .task-card .actions .btn {
-            font-size: 0.85rem;
+        .page-header {
+            padding: 20px;
         }
 
+            .page-header h2 {
+                font-size: 1.4rem;
+            }
+
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .table-container {
+            display: none;
+        }
+
+        .task-card {
+            display: block;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
     }
 </style>
 
@@ -359,30 +510,138 @@
 else
 {
     <div class="maincontainer">
-        <!-- Action Bar -->
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2>📋 Task Management Dashboard</h2>
+        </div>
+
+        <!-- Success/Error Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> @TempData["Success"]
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-circle"></i> @TempData["Error"]
+            </div>
+        }
+
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card total">
+                <div class="stat-icon">📊</div>
+                <div class="stat-label">Total Tasks</div>
+                <div class="stat-value">@totalTasks</div>
+            </div>
+
+            <div class="stat-card pending">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-value">@pendingCount</div>
+                <div class="stat-percent">@pendingPercent%</div>
+            </div>
+
+            <div class="stat-card in-progress">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-label">In Progress</div>
+                <div class="stat-value">@inProgressCount</div>
+                <div class="stat-percent">@inProgressPercent%</div>
+            </div>
+
+            <div class="stat-card completed">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Completed</div>
+                <div class="stat-value">@completedCount</div>
+                <div class="stat-percent">@completedPercent%</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        @if (totalTasks > 0)
+        {
+            <div class="progress-container">
+                <h5>Overall Progress</h5>
+                <div class="progress">
+                    @if (pendingPercent > 0)
+                    {
+                        <div class="progress-bar bg-danger" style="width: @pendingPercent%">
+                            @if (pendingPercent > 10)
+                            {
+                                <span>@pendingPercent% Pending</span>
+                            }
+                        </div>
+                    }
+                    @if (inProgressPercent > 0)
+                    {
+                        <div class="progress-bar bg-warning" style="width: @inProgressPercent%">
+                            @if (inProgressPercent > 10)
+                            {
+                                <span>@inProgressPercent% In Progress</span>
+                            }
+                        </div>
+                    }
+                    @if (completedPercent > 0)
+                    {
+                        <div class="progress-bar bg-success" style="width: @completedPercent%">
+                            @if (completedPercent > 10)
+                            {
+                                <span>@completedPercent% Completed</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Action Bar with Filters -->
         <div class="action-bar">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group">
+            <form method="get" asp-action="Index" id="filterForm">
+                <div class="filter-section">
+                    <!-- Search -->
+                    <div class="form-group">
+                        <label for="searchInput">🔍 Search</label>
+                        <input type="text" id="searchInput" name="search" class="form-control"
+                               placeholder="Search by title or description..."
+                               value="@searchText" />
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="form-group">
+                        <label for="statusFilter">📋 Status</label>
+                        <select id="statusFilter" name="status" class="form-control">
+                            <option value="">All Status</option>
+                            <option value="Pending" selected="@(statusFilter == "Pending")">⏳ Pending</option>
+                            <option value="In Progress" selected="@(statusFilter == "In Progress")">🔄 In Progress</option>
+                            <option value="Completed" selected="@(statusFilter == "Completed")">✅ Completed</option>
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Reset
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-3" style="display: flex; gap: 10px; flex-wrap: wrap;">
                     @if (canCreate)
                     {
                         <a asp-action="Create" class="btn btn-primary">
                             <i class="bi bi-plus-circle"></i> New Task
                         </a>
                     }
-                    <a asp-action="TaskReport" class="btn btn-success"
-                       asp-route-search="@searchText">
-                        <i class="bi bi-file-earmark-pdf"></i> PDF Report
-                    </a>
+                    <button type="button" class="btn btn-success" onclick="generateReport()">
+                        <i class="bi bi-file-earmark-pdf"></i> Generate PDF Report
+                    </button>
                 </div>
-
-                <!-- Search Box -->
-                <div class="search-box" style="flex: 1; max-width: 400px; margin-left: 20px;">
-                    <input type="text" id="searchInput" class="form-control"
-                           placeholder="🔍 Search tasks by title, description..."
-                           value="@searchText" />
-                    <i class="bi bi-search search-icon"></i>
-                </div>
-            </div>
+            </form>
         </div>
 
         @if (!Model.Any())
@@ -390,7 +649,7 @@ else
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <h4>No Tasks Found</h4>
-                <p>Start by creating your first task!</p>
+                <p>@(string.IsNullOrEmpty(searchText) && string.IsNullOrEmpty(statusFilter) ? "Start by creating your first task!" : "Try adjusting your filters")</p>
                 @if (canCreate)
                 {
                     <a asp-action="Create" class="btn btn-primary mt-3">
@@ -403,13 +662,14 @@ else
         {
             <!-- Desktop Table View -->
             <div class="table-container">
-                <table class="table table-hover mb-0" id="tasksTable">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 20%;">Title</th>
-                            <th style="width: 35%;">Description</th>
-                            <th style="width: 15%;" class="text-center">Image</th>
-                            <th style="width: 15%;">Created At</th>
+                            <th style="width: 18%;">Title</th>
+                            <th style="width: 30%;">Description</th>
+                            <th style="width: 12%;" class="text-center">Status</th>
+                            <th style="width: 12%;" class="text-center">Image</th>
+                            <th style="width: 13%;">Created At</th>
                             @if (canEdit || canDelete || canView)
                             {
                                 <th style="width: 15%;" class="text-center">Actions</th>
@@ -422,6 +682,26 @@ else
                             <tr>
                                 <td><strong>@task.Title</strong></td>
                                 <td>@task.Description</td>
+                                <td class="text-center">
+                                    @{
+                                        var statusClass = task.Status?.ToLower().Replace(" ", "-") ?? "pending";
+                                    }
+                                    <span class="status-badge @statusClass">
+                                        @if (task.Status == "Completed")
+                                        {
+                                            <text>✅ </text>
+                                        }
+                                        else if (task.Status == "In Progress")
+                                        {
+                                            <text>🔄 </text>
+                                        }
+                                        else
+                                        {
+                                            <text>⏳ </text>
+                                        }
+                                        @(task.Status ?? "Pending")
+                                    </span>
+                                </td>
                                 <td class="text-center">
                                     @if (!string.IsNullOrEmpty(task.ImagePath))
                                     {
@@ -444,20 +724,20 @@ else
                                         <div class="d-flex gap-1 justify-content-center flex-wrap">
                                             @if (canView)
                                             {
-                                                <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-info btn-sm">
+                                                <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-info btn-sm" title="View Details">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                             }
                                             @if (canEdit)
                                             {
-                                                <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-warning btn-sm">
+                                                <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-warning btn-sm" title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
                                             }
                                             @if (canDelete)
                                             {
                                                 <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-danger btn-sm"
-                                                   onclick="return confirm('Are you sure you want to delete this task?');">
+                                                   onclick="return confirm('Are you sure you want to delete this task?');" title="Delete">
                                                     <i class="bi bi-trash"></i>
                                                 </a>
                                             }
@@ -473,6 +753,7 @@ else
             <!-- Mobile Card View -->
             @foreach (var task in Model)
             {
+                var statusClass = task.Status?.ToLower().Replace(" ", "-") ?? "pending";
                 <div class="task-card">
                     <div class="card-header">
                         <div style="flex: 1;">
@@ -481,6 +762,21 @@ else
                                 <i class="bi bi-calendar3"></i> @task.CreatedAt.ToString("dd MMM yyyy, HH:mm")
                             </div>
                         </div>
+                        <span class="status-badge @statusClass">
+                            @if (task.Status == "Completed")
+                            {
+                                <text>✅</text>
+                            }
+                            else if (task.Status == "In Progress")
+                            {
+                                <text>🔄</text>
+                            }
+                            else
+                            {
+                                <text>⏳</text>
+                            }
+                            @(task.Status ?? "Pending")
+                        </span>
                     </div>
 
                     <div class="task-description">
@@ -524,28 +820,27 @@ else
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
+        function generateReport() {
+            var search = $('#searchInput').val();
+            var status = $('#statusFilter').val();
+            var url = '@Url.Action("TaskReport")' +
+                '?search=' + encodeURIComponent(search) +
+                '&status=' + encodeURIComponent(status);
+            window.location.href = url;
+        }
+
         $(document).ready(function () {
-            $('#searchInput').on('keyup', function () {
-                var value = $(this).val().toLowerCase();
-
-                // Filter table rows
-                $('#tasksTable tbody tr').filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
-
-                // Filter mobile cards
-                $('.task-card').filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-                });
-            });
-
-            // Image preview on click (optional enhancement)
-            $('.task-image').on('click', function() {
+            // Image preview on click
+            $('.task-image').on('click', function () {
                 var src = $(this).attr('src');
                 var modal = '<div class="modal fade" id="imageModal" tabindex="-1">' +
-                    '<div class="modal-dialog modal-dialog-centered">' +
+                    '<div class="modal-dialog modal-dialog-centered modal-lg">' +
                     '<div class="modal-content">' +
-                    '<div class="modal-body p-0">' +
+                    '<div class="modal-header">' +
+                    '<h5 class="modal-title">Task Image</h5>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+                    '</div>' +
+                    '<div class="modal-body p-0 text-center">' +
                     '<img src="' + src + '" class="img-fluid" />' +
                     '</div>' +
                     '</div>' +
@@ -553,7 +848,8 @@ else
                     '</div>';
 
                 $('body').append(modal);
-                $('#imageModal').modal('show');
+                var modalInstance = new bootstrap.Modal(document.getElementById('imageModal'));
+                modalInstance.show();
                 $('#imageModal').on('hidden.bs.modal', function () {
                     $(this).remove();
                 });

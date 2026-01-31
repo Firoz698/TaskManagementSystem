@@ -4,7 +4,7 @@
 @{
     ViewData["Title"] = "Roles";
     int sessionUserId = Convert.ToInt32(Context.Session.GetInt32("UserId"));
-    string UserName = Convert.ToString(Context.Session.GetString("UserName"));
+    string? UserName = Convert.ToString(Context.Session.GetString("UserName"));
 
     var permission = _permissionHelper.GetUserPermissionsForController(sessionUserId, UserName, "Role");
 
