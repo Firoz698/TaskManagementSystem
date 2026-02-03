@@ -1,0 +1,110 @@
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient definitions -->
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#c44569;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b9d;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffed4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="1080" height="1080" fill="url(#mainBg)"/>
+  
+  <!-- Decorative overlay pattern -->
+  <g opacity="0.1">
+    <circle cx="150" cy="150" r="100" fill="#fff"/>
+    <circle cx="930" cy="150" r="80" fill="#fff"/>
+    <circle cx="150" cy="930" r="90" fill="#fff"/>
+    <circle cx="930" cy="930" r="100" fill="#fff"/>
+  </g>
+  
+  <!-- Photo frame area with golden border -->
+  <circle cx="540" cy="540" r="420" fill="none" stroke="url(#goldGradient)" stroke-width="20" filter="url(#shadow)"/>
+  <circle cx="540" cy="540" r="400" fill="transparent"/>
+  <circle cx="540" cy="540" r="405" fill="none" stroke="#fff" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Top decorative ribbon -->
+  <path d="M 0,0 L 1080,0 L 1080,200 Q 540,250 0,200 Z" fill="#fff" opacity="0.15"/>
+  
+  <!-- Brand/Logo area top right -->
+  <rect x="820" y="40" width="220" height="140" rx="20" fill="#fff" opacity="0.95" filter="url(#shadow)"/>
+  <circle cx="930" cy="80" r="25" fill="#ff4d6d"/>
+  <text x="930" y="90" font-family="Arial" font-size="30" fill="#fff" text-anchor="middle">♥</text>
+  <text x="930" y="130" font-family="Brush Script MT, cursive" font-size="28" font-weight="bold" fill="#c44569" text-anchor="middle">Valentine's</text>
+  <text x="930" y="160" font-family="Arial" font-size="18" fill="#ff6b9d" text-anchor="middle">2026</text>
+  
+  <!-- Heart decorations around the frame -->
+  <!-- Big heart top -->
+  <path d="M 540,80 C 520,50 480,50 460,80 C 440,50 400,50 380,80 C 380,140 460,200 500,240 C 540,200 620,140 620,80 C 600,50 560,50 540,80 Z" 
+        fill="#fff" opacity="0.7" filter="url(#shadow)"/>
+  
+  <!-- Hearts bottom left and right -->
+  <path d="M 280,950 C 270,930 250,930 240,950 C 230,930 210,930 200,950 C 200,980 240,1010 260,1030 C 280,1010 320,980 320,950 C 310,930 290,930 280,950 Z" 
+        fill="#fff" opacity="0.6"/>
+  
+  <path d="M 840,950 C 830,930 810,930 800,950 C 790,930 770,930 760,950 C 760,980 800,1010 820,1030 C 840,1010 880,980 880,950 C 870,930 850,930 840,950 Z" 
+        fill="#fff" opacity="0.6"/>
+  
+  <!-- Left side decorative hearts -->
+  <g opacity="0.5">
+    <text x="80" y="300" font-family="Arial" font-size="45" fill="#fff">♥</text>
+    <text x="120" y="500" font-family="Arial" font-size="38" fill="#fff">♥</text>
+    <text x="90" y="700" font-family="Arial" font-size="42" fill="#fff">♥</text>
+  </g>
+  
+  <!-- Right side decorative hearts -->
+  <g opacity="0.5">
+    <text x="960" y="320" font-family="Arial" font-size="43" fill="#fff">♥</text>
+    <text x="940" y="540" font-family="Arial" font-size="40" fill="#fff">♥</text>
+    <text x="970" y="740" font-family="Arial" font-size="44" fill="#fff">♥</text>
+  </g>
+  
+  <!-- Bottom text panel -->
+  <rect x="180" y="880" width="720" height="170" rx="30" fill="#fff" opacity="0.95" filter="url(#shadow)"/>
+  
+  <!-- Main text -->
+  <text x="540" y="940" font-family="Brush Script MT, cursive" font-size="52" font-weight="bold" fill="#c44569" text-anchor="middle">Happy Valentine's Day</text>
+  <text x="540" y="990" font-family="Georgia, serif" font-size="36" font-weight="bold" fill="#ff4d6d" text-anchor="middle">14 February 2026</text>
+  <text x="540" y="1030" font-family="Arial" font-size="22" fill="#ff6b9d" text-anchor="middle">♥ Love is in the Air ♥</text>
+  
+  <!-- Corner decorative roses -->
+  <text x="100" y="980" font-family="Arial" font-size="80" opacity="0.8">🌹</text>
+  <text x="940" y="980" font-family="Arial" font-size="80" opacity="0.8">🌹</text>
+  
+  <!-- Date badge top center -->
+  <g filter="url(#shadow)">
+    <circle cx="540" cy="70" r="50" fill="url(#goldGradient)"/>
+    <circle cx="540" cy="70" r="45" fill="#fff"/>
+    <text x="540" y="65" font-family="Arial" font-size="28" font-weight="bold" fill="#c44569" text-anchor="middle">14</text>
+    <text x="540" y="90" font-family="Arial" font-size="16" fill="#ff6b9d" text-anchor="middle">FEB</text>
+  </g>
+  
+  <!-- Flying hearts animation effect -->
+  <g opacity="0.3">
+    <text x="300" y="250" font-family="Arial" font-size="32" fill="#fff">♥</text>
+    <text x="750" y="280" font-family="Arial" font-size="28" fill="#fff">♥</text>
+    <text x="350" y="800" font-family="Arial" font-size="30" fill="#fff">♥</text>
+    <text x="720" y="820" font-family="Arial" font-size="26" fill="#fff">♥</text>
+    <text x="200" y="180" font-family="Arial" font-size="24" fill="#fff">♥</text>
+    <text x="860" y="200" font-family="Arial" font-size="22" fill="#fff">♥</text>
+  </g>
+  
+  <!-- Sparkle effects -->
+  <circle cx="150" cy="400" r="4" fill="#fff" opacity="0.8"/>
+  <circle cx="930" cy="450" r="5" fill="#fff" opacity="0.8"/>
+  <circle cx="180" cy="650" r="4" fill="#fff" opacity="0.8"/>
+  <circle cx="900" cy="680" r="5" fill="#fff" opacity="0.8"/>
+  <circle cx="250" y="350" r="3" fill="#fff" opacity="0.7"/>
+  <circle cx="830" cy="720" r="3" fill="#fff" opacity="0.7"/>
+</svg>

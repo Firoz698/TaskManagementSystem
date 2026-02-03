@@ -1,0 +1,15 @@
+<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" fill="transparent"/>
+  
+  <!-- Main frame -->
+  <rect x="15" y="15" width="570" height="570" fill="none" stroke="#654321" stroke-width="50" rx="10"/>
+  
+  <!-- Inner detail -->
+  <rect x="50" y="50" width="500" height="500" fill="none" stroke="#8B7355" stroke-width="5" rx="5"/>
+  
+  <!-- Ornate patterns -->
+  <path d="M 30,30 L 60,60" stroke="#D2B48C" stroke-width="3"/>
+  <path d="M 570,30 L 540,60" stroke="#D2B48C" stroke-width="3"/>
+  <path d="M 30,570 L 60,540" stroke="#D2B48C" stroke-width="3"/>
+  <path d="M 570,570 L 540,540" stroke="#D2B48C" stroke-width="3"/>
+</svg>

@@ -1,0 +1,94 @@
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d32f2f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#388e3c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  
+  <!-- Background with national flag colors -->
+  <rect width="1080" height="1080" fill="url(#bgGradient1)"/>
+  
+  <!-- Red section top -->
+  <rect width="1080" height="360" fill="#d32f2f" opacity="0.8"/>
+  
+  <!-- Green section bottom -->
+  <rect y="720" width="1080" height="360" fill="#388e3c" opacity="0.8"/>
+  
+  <!-- Decorative circle pattern -->
+  <circle cx="540" cy="540" r="480" fill="none" stroke="#006a4e" stroke-width="60" opacity="0.3"/>
+  
+  <!-- Photo area - large oval -->
+  <ellipse cx="540" cy="480" rx="420" ry="380" fill="black"/>
+  
+  <!-- Left side - Ballot box -->
+  <g transform="translate(50, 720)">
+    <!-- Ballot box base -->
+    <rect x="0" y="40" width="150" height="120" rx="5" fill="#ffffff" stroke="#333" stroke-width="3"/>
+    <rect x="0" y="40" width="150" height="30" fill="#f44336"/>
+    
+    <!-- Bangladesh emblem on box -->
+    <circle cx="75" cy="100" r="35" fill="#006a4e"/>
+    <circle cx="75" cy="100" r="28" fill="#dc143c"/>
+    <text x="75" y="110" font-family="Arial" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold">🇧🇩</text>
+    
+    <!-- Vote paper going in -->
+    <rect x="45" y="10" width="60" height="45" fill="#fff" stroke="#333" stroke-width="2" rx="3"/>
+    <line x1="55" y1="25" x2="95" y2="25" stroke="#333" stroke-width="2"/>
+    <line x1="55" y1="35" x2="85" y2="35" stroke="#333" stroke-width="2"/>
+  </g>
+  
+  <!-- Right side - National elements -->
+  <g transform="translate(880, 720)">
+    <!-- Bangladesh flag -->
+    <rect x="0" y="50" width="140" height="90" rx="5" fill="#006a4e"/>
+    <circle cx="50" cy="95" r="30" fill="#dc143c"/>
+    
+    <!-- Thumbs up icon -->
+    <text x="70" y="250" font-family="Arial" font-size="100" fill="#ffc107">👍</text>
+    
+    <!-- Check mark -->
+    <text x="70" y="320" font-family="Arial" font-size="60" fill="#4caf50">✓</text>
+  </g>
+  
+  <!-- Crowd silhouette at bottom -->
+  <g opacity="0.4" fill="#1a1a1a">
+    <ellipse cx="200" cy="950" rx="30" ry="80"/>
+    <ellipse cx="250" cy="960" rx="35" ry="75"/>
+    <ellipse cx="300" cy="955" rx="32" ry="78"/>
+    <ellipse cx="350" cy="965" rx="30" ry="72"/>
+    <ellipse cx="400" cy="950" rx="33" ry="80"/>
+    <ellipse cx="450" cy="958" rx="31" ry="76"/>
+    <ellipse cx="500" cy="952" rx="34" ry="79"/>
+    <ellipse cx="550" cy="963" rx="32" ry="74"/>
+    <ellipse cx="600" cy="955" rx="30" ry="77"/>
+    <ellipse cx="650" cy="960" rx="33" ry="75"/>
+    <ellipse cx="700" cy="950" rx="31" ry="80"/>
+    <ellipse cx="750" cy="957" rx="32" ry="76"/>
+    <ellipse cx="800" cy="954" rx="30" ry="78"/>
+    <ellipse cx="850" cy="962" rx="33" ry="73"/>
+  </g>
+  
+  <!-- Bottom text panel -->
+  <rect x="100" y="870" width="880" height="170" rx="20" fill="#ffffff" opacity="0.95" filter="url(#shadow)"/>
+  
+  <!-- Main heading -->
+  <text x="540" y="930" font-family="Arial, sans-serif" font-size="52" font-weight="bold" fill="#d32f2f" text-anchor="middle">Be a Responsible Citizen</text>
+  
+  <!-- Subheading -->
+  <text x="540" y="990" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#006a4e" text-anchor="middle">Vote for Democracy</text>
+  
+  <!-- Credit -->
+  <text x="950" y="1030" font-family="Arial, sans-serif" font-size="20" fill="#666" text-anchor="end">Dev by <tspan fill="#ff6b00" font-weight="bold">Your Name</tspan></text>
+  
+  <!-- Decorative justice scale icon (left corner) -->
+  <g transform="translate(20, 880)">
+    <rect x="0" y="0" width="100" height="100" rx="10" fill="#d32f2f"/>
+    <text x="50" y="70" font-family="Arial" font-size="60" fill="#fff" text-anchor="middle">⚖️</text>
+  </g>
+</svg>

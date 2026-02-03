@@ -1,0 +1,105 @@
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="redGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#c62828;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#2e7d32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="centerGlow">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="1080" height="1080" fill="url(#redGreen)"/>
+  
+  <!-- Glow effect in center -->
+  <circle cx="540" cy="540" r="500" fill="url(#centerGlow)"/>
+  
+  <!-- Large circular border for photo -->
+  <circle cx="540" cy="500" r="440" fill="none" stroke="#dc143c" stroke-width="50" opacity="0.6"/>
+  <circle cx="540" cy="500" r="410" fill="black"/>
+  <circle cx="540" cy="500" r="415" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>
+  
+  <!-- Top left - Ballot box illustration -->
+  <g transform="translate(30, 50)">
+    <rect x="0" y="50" width="180" height="150" rx="8" fill="#ffffff" stroke="#2e7d32" stroke-width="4"/>
+    <rect x="0" y="50" width="180" height="40" fill="#c62828"/>
+    
+    <!-- Emblem -->
+    <circle cx="90" cy="125" r="45" fill="#2e7d32"/>
+    <circle cx="90" cy="125" r="35" fill="#dc143c"/>
+    <text x="90" y="140" font-family="Arial" font-size="28" fill="#fff" text-anchor="middle" font-weight="bold">BD</text>
+    
+    <!-- Vote paper -->
+    <rect x="50" y="5" width="80" height="60" fill="#fff" stroke="#333" stroke-width="3" rx="4"/>
+    <line x1="65" y1="25" x2="120" y2="25" stroke="#333" stroke-width="3"/>
+    <line x1="65" y1="40" x2="110" y2="40" stroke="#333" stroke-width="3"/>
+    <circle cx="70" cy="35" r="5" fill="#2e7d32"/>
+  </g>
+  
+  <!-- Top right - Democracy symbols -->
+  <g transform="translate(850, 50)">
+    <rect x="0" y="0" width="200" height="200" rx="15" fill="#ffffff" opacity="0.95"/>
+    
+    <!-- Bangladesh flag -->
+    <rect x="30" y="20" width="140" height="90" rx="5" fill="#006a4e"/>
+    <circle cx="80" cy="65" r="35" fill="#dc143c"/>
+    
+    <!-- Vote symbol -->
+    <text x="100" y="170" font-family="Arial" font-size="70" text-anchor="middle">✓</text>
+  </g>
+  
+  <!-- Bottom left - Justice symbol -->
+  <g transform="translate(40, 880)">
+    <rect x="0" y="0" width="130" height="130" rx="12" fill="#c62828" opacity="0.9"/>
+    <text x="65" y="90" font-family="Arial" font-size="80" fill="#ffffff" text-anchor="middle">⚖️</text>
+  </g>
+  
+  <!-- Bottom right - Thumbs up & flag -->
+  <g transform="translate(870, 850)">
+    <!-- Bangladesh flag -->
+    <rect x="0" y="0" width="160" height="105" rx="8" fill="#006a4e"/>
+    <circle cx="60" cy="52" r="38" fill="#dc143c"/>
+    
+    <!-- Thumbs up -->
+    <text x="85" y="180" font-family="Arial" font-size="110" fill="#ffc107">👍</text>
+    
+    <!-- Check mark -->
+    <text x="90" y="260" font-family="Arial" font-size="70" fill="#4caf50">✓</text>
+  </g>
+  
+  <!-- Crowd silhouette -->
+  <g opacity="0.35" fill="#1a1a1a">
+    <path d="M 180,920 Q 180,860 210,860 Q 240,860 240,920 Z"/>
+    <path d="M 250,925 Q 250,865 280,865 Q 310,865 310,925 Z"/>
+    <path d="M 320,920 Q 320,860 350,860 Q 380,860 380,920 Z"/>
+    <path d="M 390,928 Q 390,868 420,868 Q 450,868 450,928 Z"/>
+    <path d="M 460,922 Q 460,862 490,862 Q 520,862 520,922 Z"/>
+    <path d="M 530,927 Q 530,867 560,867 Q 590,867 590,927 Z"/>
+    <path d="M 600,920 Q 600,860 630,860 Q 660,860 660,920 Z"/>
+    <path d="M 670,925 Q 670,865 700,865 Q 730,865 730,925 Z"/>
+    <path d="M 740,922 Q 740,862 770,862 Q 800,862 800,922 Z"/>
+    <path d="M 810,928 Q 810,868 840,868 Q 870,868 870,928 Z"/>
+  </g>
+  
+  <!-- Main text panel -->
+  <rect x="120" y="900" width="840" height="155" rx="25" fill="#ffffff" opacity="0.97"/>
+  
+  <!-- Heading -->
+  <text x="540" y="960" font-family="Arial, sans-serif" font-size="54" font-weight="bold" fill="#c62828" text-anchor="middle">Be a Responsible Citizen</text>
+  
+  <!-- Subheading -->
+  <text x="540" y="1020" font-family="Arial, sans-serif" font-size="50" font-weight="bold" fill="#2e7d32" text-anchor="middle">Vote for Democracy</text>
+  
+  <!-- Developer credit -->
+  <text x="920" y="1065" font-family="Arial, sans-serif" font-size="22" fill="#555" text-anchor="end">Dev by <tspan fill="#ff6b00" font-weight="bold">Firoz</tspan></text>
+  
+  <!-- Decorative stars -->
+  <text x="100" y="500" font-family="Arial" font-size="40" fill="#ffc107" opacity="0.6">★</text>
+  <text x="970" y="520" font-family="Arial" font-size="38" fill="#ffc107" opacity="0.6">★</text>
+  <text x="120" y="300" font-family="Arial" font-size="35" fill="#fff" opacity="0.5">★</text>
+  <text x="950" y="320" font-family="Arial" font-size="36" fill="#fff" opacity="0.5">★</text>
+</svg>

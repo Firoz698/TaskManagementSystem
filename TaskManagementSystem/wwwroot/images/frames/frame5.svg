@@ -1,0 +1,12 @@
+<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" fill="transparent"/>
+  
+  <!-- Simple white frame -->
+  <rect x="30" y="30" width="540" height="540" fill="none" stroke="#FFFFFF" stroke-width="35" rx="5"/>
+  
+  <!-- Light gray shadow effect -->
+  <rect x="32" y="32" width="540" height="540" fill="none" stroke="#E8E8E8" stroke-width="2" rx="5"/>
+  
+  <!-- Inner border -->
+  <rect x="50" y="50" width="500" height="500" fill="none" stroke="#CCCCCC" stroke-width="1" rx="3"/>
+</svg>
