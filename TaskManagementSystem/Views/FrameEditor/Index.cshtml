@@ -4,172 +4,738 @@
 }
 
 <style>
-    /* Frame Editor Styles */
+    /* Global Styles */
+    * {
+        box-sizing: border-box;
+    }
 
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Container Improvements */
+    .editor-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Card Styling */
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: visible;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        background: white;
+        height: 100%;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+        font-weight: bold;
+        font-size: 18px;
+        padding: 15px 20px;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Frame List - Improved Scrolling */
     .frame-list {
-        max-height: 600px;
+        max-height: 500px;
         overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 10px;
     }
 
     .frame-option {
         cursor: pointer;
-        border: 2px solid transparent;
-        border-radius: 8px;
-        padding: 10px;
+        border: 3px solid transparent;
+        border-radius: 12px;
+        padding: 12px;
         transition: all 0.3s ease;
-    }
-
-        .frame-option:hover {
-            border-color: #007bff;
-            background-color: #f8f9fa;
-            transform: scale(1.05);
-        }
-
-        .frame-option.active {
-            border-color: #28a745;
-            background-color: #d4edda;
-        }
-
-    .frame-thumbnail {
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    #canvas-container {
-        background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0);
-        background-size: 20px 20px;
-        background-position: 0 0, 10px 10px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        width: 600px;
-        height: 600px;
-        margin: 0 auto;
+        background: white;
+        margin-bottom: 15px;
         position: relative;
         overflow: hidden;
     }
 
-    #editor-canvas {
-        cursor: move;
+    .frame-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .frame-option:hover::before {
+        opacity: 1;
+    }
+
+    .frame-option:hover {
+        border-color: #667eea;
+        background-color: #f8f9fa;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .frame-option.active {
+        border-color: #28a745;
+        background: linear-gradient(to bottom, #d4edda, #ffffff);
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+        transform: scale(1.05);
+    }
+
+    .frame-option.active::after {
+        content: '✓';
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #28a745;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+    }
+
+    .frame-thumbnail {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        height: auto;
         display: block;
+        transition: transform 0.3s ease;
     }
 
-    #frame-overlay {
-        width: 600px;
-        height: 600px;
+    .frame-option:hover .frame-thumbnail {
+        transform: scale(1.02);
     }
 
-    .btn-group .btn {
-        flex: 1;
+    /* Canvas Container - Improved */
+    #canvas-container {
+        background: white;
+        border: 3px solid #ddd;
+        border-radius: 15px;
+        width: 100%;
+        max-width: 600px;
+        aspect-ratio: 1;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        cursor: grab;
+        touch-action: none;
     }
 
-    /* Scrollbar styling */
+    #canvas-container.dragging {
+        cursor: grabbing;
+    }
+
+    #canvas-container::before {
+        content: '🖱️ Drag to move • Scroll to zoom';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    #canvas-container:hover::before {
+        opacity: 1;
+    }
+
+    #editor-canvas {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Category Tabs - Improved */
+    .frame-categories {
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .category-tab {
+        padding: 12px 18px;
+        border: 2px solid #e9ecef;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .category-tab::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: left 0.3s ease;
+        z-index: 0;
+    }
+
+    .category-tab span {
+        position: relative;
+        z-index: 1;
+    }
+
+    .category-tab:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .category-tab:hover::before {
+        left: 0;
+    }
+
+    .category-tab:hover span {
+        color: white;
+    }
+
+    .category-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .category-tab.active::before {
+        left: 0;
+    }
+
+    .frame-category-content {
+        display: none;
+    }
+
+    .frame-category-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Scrollbar Styling */
     .frame-list::-webkit-scrollbar {
-        width: 8px;
+        width: 12px;
     }
 
     .frame-list::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
+        margin: 5px 0;
     }
 
     .frame-list::-webkit-scrollbar-thumb {
-        background: #888;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 10px;
+        border: 2px solid #f1f1f1;
     }
 
-        .frame-list::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+    .frame-list::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    /* Button Styling - Enhanced */
+    .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 10px 16px;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-group .btn {
+        flex: 1;
+        margin: 0 2px;
+    }
+
+    /* Control Sliders - Improved */
+    .slider-container {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: linear-gradient(to right, #f8f9fa, #ffffff);
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+
+    .form-range {
+        height: 8px;
+        cursor: pointer;
+    }
+
+    .form-range::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        cursor: grab;
+        transition: all 0.2s ease;
+    }
+
+    .form-range::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    }
+
+    .form-range::-webkit-slider-thumb:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+    }
+
+    .form-range::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        cursor: grab;
+        transition: all 0.2s ease;
+    }
+
+    .form-range::-moz-range-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    }
+
+    /* File Upload Styling */
+    .file-upload-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .form-control[type="file"] {
+        cursor: pointer;
+        padding: 12px;
+        border: 2px dashed #667eea;
+        border-radius: 10px;
+        background: linear-gradient(to right, #f8f9fa, #ffffff);
+        transition: all 0.3s ease;
+    }
+
+    .form-control[type="file"]:hover {
+        border-color: #764ba2;
+        background: linear-gradient(to right, #e9ecef, #f8f9fa);
+        transform: translateY(-2px);
+    }
+
+    /* Loading Indicator */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        border-radius: 15px;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 
     /* Responsive Design */
-    @@media (max-width: 768px) {
-        #canvas-container
-
-    {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 1;
-    }
-
-    #editor-canvas {
-        width: 100%;
-        height: auto;
-    }
-
-    #frame-image {
-        width: 100% !important;
-        height: auto !important;
-    }
-
-    }
-
-    /* Loading Spinner */
-    .spinner-border {
-        display: none;
-    }
-
-    .loading .spinner-border {
-        display: inline-block;
-    }
-
-    /* Card Animations */
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    @@media (max-width: 1200px) {
+        .editor-container {
+            padding: 15px;
         }
+    }
+
+    @@media (max-width: 992px) {
+        .col-md-3, .col-md-6 {
+            margin-bottom: 20px;
+        }
+
+        #canvas-container {
+            max-width: 500px;
+        }
+
+        .frame-list {
+            max-height: 400px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        h1 {
+            font-size: 24px !important;
+        }
+
+        .card-header h5 {
+            font-size: 16px;
+        }
+
+        #canvas-container {
+            max-width: 100%;
+        }
+
+        .category-tab {
+            font-size: 12px;
+            padding: 10px 14px;
+        }
+
+        .btn {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        .frame-list {
+            max-height: 350px;
+        }
+
+        .slider-container {
+            padding: 10px;
+        }
+
+        #canvas-container::before {
+            font-size: 10px;
+            padding: 6px 12px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .editor-container {
+            padding: 10px;
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .btn-group .btn {
+            margin: 5px 0;
+        }
+
+        .category-tab {
+            font-size: 11px;
+            padding: 8px 12px;
+        }
+    }
+
+    /* Tooltip */
+    .tooltip-hint {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+    }
+
+    .tooltip-hint:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        font-size: 12px;
+        z-index: 1000;
+        margin-bottom: 5px;
+    }
+
+    /* Badge for frame count */
+    .frame-count-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        margin-left: 5px;
+        font-weight: bold;
+    }
 </style>
 
-<div class="container mt-5">
-    <h1 class="text-center mb-4">Photo Frame Editor</h1>
-
+<div class="editor-container">
     <div class="row">
         <!-- Frame Selection Panel -->
-        <div class="col-md-3">
+        <div class="col-lg-3 col-md-4 col-sm-12">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Select Frame</h5>
+                    <h5 class="mb-0">🖼️ Select Frame <span class="frame-count-badge" id="frame-count">0</span></h5>
                 </div>
-                <div class="card-body frame-list">
-                    @foreach (var frame in Model.AvailableFrames)
-                    {
-                        <div class="frame-option mb-3" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
-                            <img src="@frame.ImagePath" alt="@frame.Name" class="img-fluid frame-thumbnail" />
-                            <p class="text-center mt-2 mb-0">@frame.Name</p>
+                <div class="card-body">
+                    <!-- Category Tabs -->
+                    <div class="frame-categories">
+                        <button class="category-tab active" data-category="all">
+                            <span>সব</span>
+                        </button>
+                        <button class="category-tab" data-category="classic">
+                            <span>Classic</span>
+                        </button>
+                        <button class="category-tab" data-category="valentine">
+                            <span>Valentine</span>
+                        </button>
+                        <button class="category-tab" data-category="vote">
+                            <span>Vote</span>
+                        </button>
+                        <button class="category-tab" data-category="shaheed">
+                            <span>শহীদ দিবস</span>
+                        </button>
+                        <button class="category-tab" data-category="independence">
+                            <span>স্বাধীনতা</span>
+                        </button>
+                        <button class="category-tab" data-category="victory">
+                            <span>বিজয়</span>
+                        </button>
+                        <button class="category-tab" data-category="eid">
+                            <span>ঈদ</span>
+                        </button>
+                        <button class="category-tab" data-category="boishakh">
+                            <span>নববর্ষ</span>
+                        </button>
+                        <button class="category-tab" data-category="education">
+                            <span>শিক্ষা</span>
+                        </button>
+                    </div>
+
+                    <div class="frame-list">
+                        <!-- All Frames -->
+                        <div class="frame-category-content active" data-category="all">
+                            @foreach (var frame in Model.AvailableFrames)
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
                         </div>
-                    }
+
+                        <!-- Classic Frames -->
+                        <div class="frame-category-content" data-category="classic">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id >= 1 && f.Id <= 6))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Valentine Frames -->
+                        <div class="frame-category-content" data-category="valentine">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id >= 7 && f.Id <= 9))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Vote Frames -->
+                        <div class="frame-category-content" data-category="vote">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id >= 10 && f.Id <= 14))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- শহীদ দিবস Frames -->
+                        <div class="frame-category-content" data-category="shaheed">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id >= 15 && f.Id <= 17))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- স্বাধীনতা দিবস Frames -->
+                        <div class="frame-category-content" data-category="independence">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id >= 18 && f.Id <= 19))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- বিজয় দিবস Frame -->
+                        <div class="frame-category-content" data-category="victory">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id == 20))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- ঈদ মুবারক Frame -->
+                        <div class="frame-category-content" data-category="eid">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id == 21))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- পহেলা বৈশাখ Frame -->
+                        <div class="frame-category-content" data-category="boishakh">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id == 22))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- শিক্ষা Frame -->
+                        <div class="frame-category-content" data-category="education">
+                            @foreach (var frame in Model.AvailableFrames.Where(f => f.Id == 23))
+                            {
+                                <div class="frame-option" data-frame-id="@frame.Id" data-frame-path="@frame.ImagePath">
+                                    <img src="@frame.ImagePath" alt="@frame.Name" class="frame-thumbnail" onerror="this.src='/images/frames/placeholder.png'" />
+                                    <p class="text-center mt-2 mb-0 fw-bold"><small>@frame.Name</small></p>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Editor Canvas -->
-        <div class="col-md-6">
+        <div class="col-lg-6 col-md-8 col-sm-12">
             <div class="card">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Editor</h5>
+                    <h5 class="mb-0">✏️ Editor</h5>
                 </div>
                 <div class="card-body">
-                    <div id="canvas-container" class="position-relative">
-                        <canvas id="editor-canvas" width="600" height="600"></canvas>
-                        <div id="frame-overlay" class="position-absolute" style="top: 0; left: 0; pointer-events: none;">
-                            <img id="frame-image" src="" alt="Frame" style="width: 600px; height: 600px; display: none;" />
+                    <div id="canvas-container">
+                        <canvas id="editor-canvas" width="1080" height="1080"></canvas>
+                        <div class="loading-overlay">
+                            <div class="spinner"></div>
                         </div>
                     </div>
 
-                    <div class="mt-3">
-                        <input type="file" id="photo-upload" accept="image/*" class="form-control mb-3" />
+                    <div class="mt-4">
+                        <div class="file-upload-wrapper">
+                            <label class="form-label fw-bold">📤 Upload Your Photo:</label>
+                            <input type="file" id="photo-upload" accept="image/*" class="form-control" />
+                        </div>
 
                         <div class="btn-group w-100 mb-2" role="group">
-                            <button id="zoom-in" class="btn btn-outline-secondary">
+                            <button id="zoom-in" class="btn btn-outline-primary" title="Zoom In (Ctrl + +)">
                                 <i class="bi bi-zoom-in"></i> Zoom In
                             </button>
-                            <button id="zoom-out" class="btn btn-outline-secondary">
+                            <button id="zoom-out" class="btn btn-outline-primary" title="Zoom Out (Ctrl + -)">
                                 <i class="bi bi-zoom-out"></i> Zoom Out
                             </button>
-                            <button id="reset-position" class="btn btn-outline-warning">
+                            <button id="reset-position" class="btn btn-outline-warning" title="Reset Position (Ctrl + R)">
                                 <i class="bi bi-arrow-clockwise"></i> Reset
                             </button>
                         </div>
@@ -179,34 +745,42 @@
         </div>
 
         <!-- Controls Panel -->
-        <div class="col-md-3">
+        <div class="col-lg-3 col-md-12 col-sm-12">
             <div class="card">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Controls</h5>
+                    <h5 class="mb-0">🎛️ Controls</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Zoom Level: <span id="zoom-level">100</span>%</label>
-                        <input type="range" class="form-range" id="zoom-slider" min="50" max="200" value="100" />
+                    <div class="slider-container">
+                        <label class="form-label fw-bold">🔍 Zoom: <span id="zoom-level">100</span>%</label>
+                        <input type="range" class="form-range" id="zoom-slider" min="50" max="300" value="100" />
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Position X: <span id="pos-x">0</span>px</label>
-                        <input type="range" class="form-range" id="position-x" min="-300" max="300" value="0" />
+                    <div class="slider-container">
+                        <label class="form-label fw-bold">↔️ Position X: <span id="pos-x">0</span>px</label>
+                        <input type="range" class="form-range" id="position-x" min="-500" max="500" value="0" />
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Position Y: <span id="pos-y">0</span>px</label>
-                        <input type="range" class="form-range" id="position-y" min="-300" max="300" value="0" />
+                    <div class="slider-container">
+                        <label class="form-label fw-bold">↕️ Position Y: <span id="pos-y">0</span>px</label>
+                        <input type="range" class="form-range" id="position-y" min="-500" max="500" value="0" />
                     </div>
 
-                    <button id="download-btn" class="btn btn-success w-100 mb-2">
+                    <button id="download-btn" class="btn btn-success w-100 mb-3">
                         <i class="bi bi-download"></i> Download Photo
                     </button>
 
                     <button id="clear-btn" class="btn btn-danger w-100">
                         <i class="bi bi-trash"></i> Clear All
                     </button>
+
+                    <div class="mt-3 p-3" style="background: #f8f9fa; border-radius: 10px; font-size: 12px;">
+                        <strong>💡 Tips:</strong><br>
+                        • Drag to move photo<br>
+                        • Scroll wheel to zoom<br>
+                        • Use sliders for precision<br>
+                        • High quality 1080x1080 output
+                    </div>
                 </div>
             </div>
         </div>
@@ -214,14 +788,17 @@
 </div>
 
 <script>
-    // Frame Editor JavaScript
+    // Enhanced Frame Editor with Mouse-Friendly Features
 
     class FrameEditor {
         constructor() {
             this.canvas = document.getElementById('editor-canvas');
             this.ctx = this.canvas.getContext('2d');
-            this.frameImage = document.getElementById('frame-image');
+            this.canvasContainer = document.getElementById('canvas-container');
+            this.loadingOverlay = this.canvasContainer.querySelector('.loading-overlay');
+            
             this.uploadedImage = null;
+            this.frameImage = null;
 
             // Image properties
             this.imageX = 0;
@@ -232,11 +809,54 @@
             this.lastY = 0;
 
             this.selectedFrame = null;
+            this.selectedFrameId = null;
+
+            // Frame configurations
+            this.frameConfigs = {
+                'default': { centerX: 540, centerY: 540, radius: 440 },
+                'classic': { centerX: 540, centerY: 540, radius: 420 },
+                'valentine': { centerX: 540, centerY: 480, radius: 400 },
+                'vote': { centerX: 540, centerY: 500, radius: 410 },
+                'political': { centerX: 540, centerY: 380, radius: 340 },
+                'shaheed': { centerX: 540, centerY: 510, radius: 385 },
+                'independence': { centerX: 540, centerY: 510, radius: 385 },
+                'victory': { centerX: 540, centerY: 520, radius: 385 },
+                'eid': { centerX: 540, centerY: 520, radius: 380 },
+                'boishakh': { centerX: 540, centerY: 520, radius: 380 },
+                'education': { centerX: 540, centerY: 520, radius: 375 }
+            };
 
             this.initializeEventListeners();
+            this.updateFrameCount();
+        }
+
+        getCurrentFrameConfig() {
+            if (!this.selectedFrameId) {
+                return this.frameConfigs.default;
+            }
+
+            const frameId = parseInt(this.selectedFrameId);
+
+            if (frameId >= 1 && frameId <= 6) return this.frameConfigs.classic;
+            else if (frameId >= 7 && frameId <= 9) return this.frameConfigs.valentine;
+            else if (frameId >= 10 && frameId <= 13) return this.frameConfigs.vote;
+            else if (frameId === 14) return this.frameConfigs.political;
+            else if (frameId >= 15 && frameId <= 17) return this.frameConfigs.shaheed;
+            else if (frameId >= 18 && frameId <= 19) return this.frameConfigs.independence;
+            else if (frameId === 20) return this.frameConfigs.victory;
+            else if (frameId === 21) return this.frameConfigs.eid;
+            else if (frameId === 22) return this.frameConfigs.boishakh;
+            else if (frameId === 23) return this.frameConfigs.education;
+
+            return this.frameConfigs.default;
         }
 
         initializeEventListeners() {
+            // Category tabs
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => this.switchCategory(e.currentTarget));
+            });
+
             // Frame selection
             document.querySelectorAll('.frame-option').forEach(frame => {
                 frame.addEventListener('click', (e) => this.selectFrame(e.currentTarget));
@@ -245,21 +865,31 @@
             // Photo upload
             document.getElementById('photo-upload').addEventListener('change', (e) => this.handlePhotoUpload(e));
 
-            // Canvas drag events
+            // Mouse events
             this.canvas.addEventListener('mousedown', (e) => this.startDrag(e));
             this.canvas.addEventListener('mousemove', (e) => this.drag(e));
             this.canvas.addEventListener('mouseup', () => this.stopDrag());
             this.canvas.addEventListener('mouseleave', () => this.stopDrag());
 
-            // Touch events for mobile
-            this.canvas.addEventListener('touchstart', (e) => this.startDrag(e.touches[0]));
+            // Mouse wheel zoom
+            this.canvasContainer.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+
+            // Touch events
+            this.canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    this.startDrag(e.touches[0]);
+                }
+            });
             this.canvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
-                this.drag(e.touches[0]);
+                if (e.touches.length === 1) {
+                    this.drag(e.touches[0]);
+                }
             });
             this.canvas.addEventListener('touchend', () => this.stopDrag());
 
-            // Control buttons
+            // Buttons
             document.getElementById('zoom-in').addEventListener('click', () => this.zoomIn());
             document.getElementById('zoom-out').addEventListener('click', () => this.zoomOut());
             document.getElementById('reset-position').addEventListener('click', () => this.resetPosition());
@@ -270,29 +900,132 @@
             document.getElementById('zoom-slider').addEventListener('input', (e) => this.handleZoomSlider(e));
             document.getElementById('position-x').addEventListener('input', (e) => this.handlePositionX(e));
             document.getElementById('position-y').addEventListener('input', (e) => this.handlePositionY(e));
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        }
+
+        handleKeyboard(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    this.zoomIn();
+                } else if (e.key === '-' || e.key === '_') {
+                    e.preventDefault();
+                    this.zoomOut();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    e.preventDefault();
+                    this.resetPosition();
+                }
+            }
+
+            // Arrow keys for precise movement
+            if (!e.ctrlKey && !e.shiftKey) {
+                const step = 5;
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    this.imageX -= step;
+                    this.updatePositionSliders();
+                    this.redrawCanvas();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    this.imageX += step;
+                    this.updatePositionSliders();
+                    this.redrawCanvas();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    this.imageY -= step;
+                    this.updatePositionSliders();
+                    this.redrawCanvas();
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    this.imageY += step;
+                    this.updatePositionSliders();
+                    this.redrawCanvas();
+                }
+            }
+        }
+
+        handleWheel(e) {
+            if (!this.uploadedImage) return;
+
+            e.preventDefault();
+            
+            const delta = e.deltaY > 0 ? -0.05 : 0.05;
+            this.imageScale = Math.max(0.1, Math.min(5, this.imageScale + delta));
+            
+            this.updateZoomSlider();
+            this.redrawCanvas();
+        }
+
+        updateFrameCount() {
+            const activeContent = document.querySelector('.frame-category-content.active');
+            if (activeContent) {
+                const count = activeContent.querySelectorAll('.frame-option').length;
+                document.getElementById('frame-count').textContent = count;
+            }
+        }
+
+        switchCategory(tabElement) {
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            tabElement.classList.add('active');
+
+            const category = tabElement.dataset.category;
+
+            document.querySelectorAll('.frame-category-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            const selectedContent = document.querySelector(`.frame-category-content[data-category="${category}"]`);
+            if (selectedContent) {
+                selectedContent.classList.add('active');
+                this.updateFrameCount();
+            }
         }
 
         selectFrame(frameElement) {
-            // Remove active class from all frames
             document.querySelectorAll('.frame-option').forEach(f => f.classList.remove('active'));
-
-            // Add active class to selected frame
             frameElement.classList.add('active');
 
-            // Get frame path
             const framePath = frameElement.dataset.framePath;
+            const frameId = frameElement.dataset.frameId;
+
             this.selectedFrame = framePath;
+            this.selectedFrameId = frameId;
 
-            // Load and display frame
-            this.frameImage.src = framePath;
-            this.frameImage.style.display = 'block';
+            // Show loading
+            this.loadingOverlay.classList.add('active');
 
-            this.redrawCanvas();
+            const img = new Image();
+            img.onload = () => {
+                this.frameImage = img;
+                this.loadingOverlay.classList.remove('active');
+                this.redrawCanvas();
+            };
+            img.onerror = () => {
+                this.loadingOverlay.classList.remove('active');
+                alert('ফ্রেম লোড করতে সমস্যা হয়েছে!');
+            };
+            img.src = framePath;
         }
 
         handlePhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('অনুগ্রহ করে একটি ছবি ফাইল সিলেক্ট করুন!');
+                return;
+            }
+
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('ছবিটি খুব বড়! ১০ MB এর ছোট ছবি ব্যবহার করুন।');
+                return;
+            }
+
+            this.loadingOverlay.classList.add('active');
 
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -300,7 +1033,12 @@
                 img.onload = () => {
                     this.uploadedImage = img;
                     this.resetPosition();
+                    this.loadingOverlay.classList.remove('active');
                     this.redrawCanvas();
+                };
+                img.onerror = () => {
+                    this.loadingOverlay.classList.remove('active');
+                    alert('ছবি লোড করতে সমস্যা হয়েছে!');
                 };
                 img.src = e.target.result;
             };
@@ -311,15 +1049,25 @@
             if (!this.uploadedImage) return;
 
             this.isDragging = true;
-            this.lastX = e.clientX || e.pageX;
-            this.lastY = e.clientY || e.pageY;
+            this.canvasContainer.classList.add('dragging');
+            
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+
+            this.lastX = ((e.clientX || e.pageX) - rect.left) * scaleX;
+            this.lastY = ((e.clientY || e.pageY) - rect.top) * scaleY;
         }
 
         drag(e) {
             if (!this.isDragging || !this.uploadedImage) return;
 
-            const currentX = e.clientX || e.pageX;
-            const currentY = e.clientY || e.pageY;
+            const rect = this.canvas.getBoundingClientRect();
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+
+            const currentX = ((e.clientX || e.pageX) - rect.left) * scaleX;
+            const currentY = ((e.clientY || e.pageY) - rect.top) * scaleY;
 
             const deltaX = currentX - this.lastX;
             const deltaY = currentY - this.lastY;
@@ -336,10 +1084,11 @@
 
         stopDrag() {
             this.isDragging = false;
+            this.canvasContainer.classList.remove('dragging');
         }
 
         zoomIn() {
-            this.imageScale = Math.min(this.imageScale + 0.1, 3);
+            this.imageScale = Math.min(this.imageScale + 0.1, 5);
             this.updateZoomSlider();
             this.redrawCanvas();
         }
@@ -391,18 +1140,25 @@
         }
 
         redrawCanvas() {
-            // Clear canvas
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            // Clear with white background
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-            // Draw uploaded image if exists
+            // Draw uploaded image with circular clipping
             if (this.uploadedImage) {
                 this.ctx.save();
 
-                // Calculate scaled dimensions
+                const config = this.getCurrentFrameConfig();
+
+                // Circular clipping
+                this.ctx.beginPath();
+                this.ctx.arc(config.centerX, config.centerY, config.radius, 0, Math.PI * 2);
+                this.ctx.closePath();
+                this.ctx.clip();
+
                 const scaledWidth = this.uploadedImage.width * this.imageScale;
                 const scaledHeight = this.uploadedImage.height * this.imageScale;
 
-                // Center the image and apply position offset
                 const centerX = (this.canvas.width - scaledWidth) / 2 + this.imageX;
                 const centerY = (this.canvas.height - scaledHeight) / 2 + this.imageY;
 
@@ -416,60 +1172,67 @@
 
                 this.ctx.restore();
             }
+
+            // Draw frame
+            if (this.frameImage) {
+                this.ctx.drawImage(this.frameImage, 0, 0, this.canvas.width, this.canvas.height);
+            }
         }
 
         downloadImage() {
             if (!this.uploadedImage) {
-                alert('Please upload a photo first!');
+                alert('অনুগ্রহ করে প্রথমে একটি ছবি আপলোড করুন!');
                 return;
             }
 
-            // Create a temporary canvas for the final image
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = this.canvas.width;
-            tempCanvas.height = this.canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-
-            // Draw the photo
-            const scaledWidth = this.uploadedImage.width * this.imageScale;
-            const scaledHeight = this.uploadedImage.height * this.imageScale;
-            const centerX = (tempCanvas.width - scaledWidth) / 2 + this.imageX;
-            const centerY = (tempCanvas.height - scaledHeight) / 2 + this.imageY;
-
-            tempCtx.drawImage(
-                this.uploadedImage,
-                centerX,
-                centerY,
-                scaledWidth,
-                scaledHeight
-            );
-
-            // Draw the frame on top if selected
-            if (this.selectedFrame && this.frameImage.complete) {
-                tempCtx.drawImage(this.frameImage, 0, 0, tempCanvas.width, tempCanvas.height);
+            if (!this.frameImage) {
+                alert('অনুগ্রহ করে একটি ফ্রেম সিলেক্ট করুন!');
+                return;
             }
 
-            // Convert to blob and download
-            tempCanvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'framed-photo-' + Date.now() + '.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            });
+            this.loadingOverlay.classList.add('active');
+
+            setTimeout(() => {
+                this.canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+
+                    let filename = 'framed-photo-';
+                    const frameId = parseInt(this.selectedFrameId);
+
+                    if (frameId >= 7 && frameId <= 9) filename = 'valentine-photo-';
+                    else if (frameId >= 10 && frameId <= 13) filename = 'vote-photo-';
+                    else if (frameId === 14) filename = 'political-photo-';
+                    else if (frameId >= 15 && frameId <= 17) filename = 'shaheed-photo-';
+                    else if (frameId >= 18 && frameId <= 19) filename = 'independence-photo-';
+                    else if (frameId === 20) filename = 'victory-photo-';
+                    else if (frameId === 21) filename = 'eid-photo-';
+                    else if (frameId === 22) filename = 'boishakh-photo-';
+                    else if (frameId === 23) filename = 'education-photo-';
+
+                    filename += Date.now() + '.png';
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    this.loadingOverlay.classList.remove('active');
+                }, 'image/png', 1.0);
+            }, 100);
         }
 
         clearAll() {
-            if (confirm('Are you sure you want to clear everything?')) {
+            if (confirm('আপনি কি নিশ্চিত সব কিছু মুছে ফেলতে চান?')) {
                 this.uploadedImage = null;
+                this.frameImage = null;
                 this.selectedFrame = null;
-                this.frameImage.style.display = 'none';
-                this.frameImage.src = '';
+                this.selectedFrameId = null;
                 this.resetPosition();
-                this.redrawCanvas();
+
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
                 document.getElementById('photo-upload').value = '';
                 document.querySelectorAll('.frame-option').forEach(f => f.classList.remove('active'));
@@ -477,7 +1240,7 @@
         }
     }
 
-    // Initialize the editor when DOM is ready
+    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         const editor = new FrameEditor();
     });
