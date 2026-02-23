@@ -16,9 +16,8 @@ namespace TaskManagementSystem.DataContext
         public DbSet<Designation> Designations { get; set; }
         public DbSet<EmployeeType> EmployeeTypes { get; set; }
         public DbSet<User> Users { get; set; }
-
+        public DbSet<GameSession> GameSessions { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
-
         public DbSet<TaskItem> Tasks { get; set; }
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Transaction> Transactions { get; set; }

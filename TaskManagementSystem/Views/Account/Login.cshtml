@@ -2,128 +2,601 @@
     ViewData["Title"] = "Login - Task Management System";
 }
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
 <style>
+    *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
     body {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-    .login-container {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        min-height: 100vh;
+        background: #f0f4ff;
         display: flex;
-        justify-content: center;
         align-items: center;
-        height: 100vh;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
     }
 
-    .login-card {
-        background: #fff;
-        border-radius: 15px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        width: 360px;
-        padding: 40px 30px;
-        text-align: center;
+    .bg-shapes {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
     }
 
-    .login-logo {
-        width: 280px;
-        margin-bottom: 15px;
-    }
-
-    .system-name {
-        font-size: 20px;
-        font-weight: 700;
-        color: #0d6efd;
-        margin-bottom: 3px;
-    }
-
-        .system-name span {
-            color: #28a745;
+        .bg-shapes::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: -200px;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+            animation: pulse1 8s ease-in-out infinite;
         }
 
-    .developed-by {
-        font-size: 13px;
-        color: #198754;
-        margin-bottom: 25px;
+        .bg-shapes::after {
+            content: '';
+            position: absolute;
+            bottom: -200px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16,185,129,0.10) 0%, transparent 70%);
+            animation: pulse2 10s ease-in-out infinite;
+        }
+
+    .bg-dot-grid {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background-image: radial-gradient(circle, rgba(59,130,246,0.07) 1px, transparent 1px);
+        background-size: 30px 30px;
     }
 
-    .login-header {
-        font-weight: 600;
-        color: #212529;
-        font-size: 18px;
+    @@keyframes pulse1 {
+        0%, 100% {
+            transform: scale(1) translate(0,0);
+        }
+
+        50% {
+            transform: scale(1.15) translate(30px,20px);
+        }
+    }
+
+    @@keyframes pulse2 {
+        0%, 100% {
+            transform: scale(1) translate(0,0);
+        }
+
+        50% {
+            transform: scale(1.1) translate(-20px,-30px);
+        }
+    }
+
+    .login-wrapper {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-panel {
+        display: flex;
+        width: 100%;
+        max-width: 900px;
+        min-height: 560px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(37,99,235,0.12), 0 4px 24px rgba(0,0,0,0.07), 0 0 0 1px rgba(37,99,235,0.07);
+        animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Left branding panel */
+    .brand-panel {
+        flex: 1;
+        background: linear-gradient(145deg, #1d4ed8 0%, #2563eb 50%, #0ea5e9 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -40px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+    .brand-logo-wrap {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        animation: logoFloat 3s ease-in-out infinite;
+        backdrop-filter: blur(10px);
+    }
+
+    @@keyframes logoFloat {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-6px);
+        }
+    }
+
+    .brand-logo-wrap i {
+        font-size: 36px;
+        color: #fff;
+    }
+
+    .brand-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #fff;
+        text-align: center;
+        letter-spacing: -0.5px;
+        margin-bottom: 10px;
+        line-height: 1.2;
+    }
+
+        .brand-title span {
+            color: #bae6fd;
+        }
+
+    .brand-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.65);
+        text-align: center;
+        margin-bottom: 36px;
+    }
+
+    .feature-list {
+        list-style: none;
+        width: 100%;
+    }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.88);
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            animation: fadeInLeft 0.5s ease both;
+        }
+
+            .feature-list li:nth-child(1) {
+                animation-delay: 0.3s;
+            }
+
+            .feature-list li:nth-child(2) {
+                animation-delay: 0.45s;
+            }
+
+            .feature-list li:nth-child(3) {
+                animation-delay: 0.6s;
+            }
+
+            .feature-list li:last-child {
+                border-bottom: none;
+            }
+
+    @@keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .feature-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .feature-icon i {
+            color: #fff;
+            font-size: 14px;
+        }
+
+    /* Right form panel */
+    .form-panel {
+        flex: 1;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 50px 44px;
+    }
+
+    .form-heading {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+
+    .form-subheading {
+        font-size: 14px;
+        color: #94a3b8;
+        margin-bottom: 32px;
+    }
+
+    /* Error alert */
+    .custom-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 12px 16px;
+        color: #dc2626;
+        font-size: 13.5px;
+        font-weight: 500;
+        margin-bottom: 20px;
+        animation: shake 0.4s ease;
+    }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        20%, 60% {
+            transform: translateX(-5px);
+        }
+
+        40%, 80% {
+            transform: translateX(5px);
+        }
+    }
+
+    .custom-alert i {
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .custom-alert .btn-close-custom {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: #dc2626;
+        cursor: pointer;
+        padding: 0;
+        font-size: 14px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+        .custom-alert .btn-close-custom:hover {
+            opacity: 1;
+        }
+
+    /* Form groups */
+    .field-group {
         margin-bottom: 20px;
     }
 
-    .form-label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #495057;
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
     }
 
-    .form-control {
-        border-radius: 6px;
-        padding: 10px;
-        font-size: 14px;
+        .field-label i {
+            font-size: 12px;
+            color: #2563eb;
+        }
+
+    .input-wrap {
+        position: relative;
     }
 
-    .btn-login {
-        background-color: #0d6efd;
+        .input-wrap input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 13px 44px 13px 16px;
+            color: #0f172a;
+            font-size: 14.5px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            outline: none;
+        }
+
+            .input-wrap input::placeholder {
+                color: #cbd5e1;
+            }
+
+            .input-wrap input:focus {
+                border-color: #2563eb;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+            }
+
+            .input-wrap input.is-invalid {
+                border-color: #ef4444 !important;
+                background: #fff8f8;
+                box-shadow: 0 0 0 3px rgba(239,68,68,0.08) !important;
+            }
+
+    .input-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #cbd5e1;
+        font-size: 16px;
+        pointer-events: none;
+        transition: color 0.2s;
+    }
+
+    .input-wrap input:focus ~ .input-icon {
+        color: #2563eb;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #cbd5e1;
+        font-size: 16px;
+        cursor: pointer;
+        background: none;
         border: none;
-        border-radius: 6px;
-        color: #fff;
-        font-weight: 600;
+        padding: 0;
+        transition: color 0.2s;
+        z-index: 2;
+    }
+
+        .toggle-password:hover {
+            color: #2563eb;
+        }
+
+    /* Login button */
+    .btn-login {
         width: 100%;
-        padding: 10px;
-        transition: background-color 0.2s ease-in-out;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 8px;
+        box-shadow: 0 4px 16px rgba(37,99,235,0.28);
+        letter-spacing: 0.3px;
     }
 
         .btn-login:hover {
-            background-color: #0b5ed7;
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37,99,235,0.38);
         }
 
-    .alert {
-        font-size: 14px;
-        margin-bottom: 15px;
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login i {
+            font-size: 17px;
+        }
+
+    /* Developer credit */
+    .dev-credit {
+        text-align: center;
+        font-size: 12px;
+        color: #cbd5e1;
+        font-weight: 500;
+        margin-top: 28px;
+    }
+
+        .dev-credit span {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+    /* Responsive */
+    @@media (max-width: 700px) {
+        .brand-panel {
+            display: none;
+        }
+
+        .form-panel {
+            padding: 40px 28px;
+            border-radius: 20px;
+        }
+
+        .login-panel {
+            border-radius: 20px;
+            max-width: 400px;
+        }
+    }
+
+    @@media (max-width: 400px) {
+        .form-panel {
+            padding: 32px 20px;
+        }
+
+        .form-heading {
+            font-size: 22px;
+        }
     }
 </style>
 
-<div class="login-container">
-    <div class="login-card">
-        <img src="~/Logo/logo.jpg" alt="Task Management Logo" class="login-logo" />
+<div class="bg-shapes"></div>
+<div class="bg-dot-grid"></div>
 
-        @if (ViewBag.Error != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                @ViewBag.Error
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="login-wrapper">
+    <div class="login-panel">
+
+        <!-- Left Branding Panel -->
+        <div class="brand-panel">
+            <div class="brand-logo-wrap">
+                <i class="bi bi-kanban-fill"></i>
             </div>
-        }
+            <div class="brand-title">Task<span>Flow</span><br />Manager</div>
+            <div class="brand-sub">Streamline your workflow efficiently</div>
 
-        <!-- 🔹 Login Form -->
-        <form asp-action="Login" method="post" class="needs-validation" novalidate>
-            <div class="mb-3 text-start">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" name="username" required />
-                <div class="invalid-feedback">
-                    Please enter your username.
+            <ul class="feature-list">
+                <li>
+                    <div class="feature-icon"><i class="bi bi-check2-circle"></i></div>
+                    Track tasks in real-time
+                </li>
+                <li>
+                    <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
+                    Manage teams & roles
+                </li>
+                <li>
+                    <div class="feature-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+                    Analytics & reports
+                </li>
+            </ul>
+        </div>
+
+        <!-- Right Form Panel -->
+        <div class="form-panel">
+            <div class="form-heading">Welcome back 👋</div>
+            <div class="form-subheading">Sign in to your account to continue</div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="custom-alert" id="errorAlert">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span>@ViewBag.Error</span>
+                    <button class="btn-close-custom" onclick="document.getElementById('errorAlert').style.display='none'">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
-            </div>
+            }
 
-            <div class="mb-3 text-start">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required />
-                <div class="invalid-feedback">
-                    Please enter your password.
+            <form asp-action="Login" method="post" class="needs-validation" id="loginForm" novalidate>
+
+                <div class="field-group">
+                    <label class="field-label" for="username">
+                        <i class="bi bi-person-fill"></i> Username
+                    </label>
+                    <div class="input-wrap">
+                        <input type="text" id="username" name="username"
+                               placeholder="Enter your username" required
+                               autocomplete="username" />
+                        <i class="bi bi-person input-icon"></i>
+                    </div>
                 </div>
-            </div>
 
-            <button type="submit" class="btn-login">Login</button>
-        </form>
+                <div class="field-group">
+                    <label class="field-label" for="password">
+                        <i class="bi bi-lock-fill"></i> Password
+                    </label>
+                    <div class="input-wrap">
+                        <input type="password" id="password" name="password"
+                               placeholder="Enter your password" required
+                               autocomplete="current-password" />
+                        <button type="button" class="toggle-password" id="togglePwd" title="Show/Hide password">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <div class="dev-credit">
+                Developed by <span>Md Firoz</span> &bull; Task Management System
+            </div>
+        </div>
+
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Bootstrap 5 client-side validation
         (function () {
             'use strict';
             var forms = document.querySelectorAll('.needs-validation');
@@ -132,10 +605,35 @@
                     if (!form.checkValidity()) {
                         event.preventDefault();
                         event.stopPropagation();
+                        form.querySelectorAll('input:invalid').forEach(function (input) {
+                            input.classList.add('is-invalid');
+                        });
+                    } else {
+                        var btn = document.getElementById('loginBtn');
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Signing in...';
+                        btn.disabled = true;
                     }
                     form.classList.add('was-validated');
                 }, false);
             });
+
+            document.querySelectorAll('input').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    this.classList.remove('is-invalid');
+                });
+            });
         })();
+
+        document.getElementById('togglePwd').addEventListener('click', function () {
+            var pwd = document.getElementById('password');
+            var icon = document.getElementById('eyeIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                pwd.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        });
     </script>
 }
