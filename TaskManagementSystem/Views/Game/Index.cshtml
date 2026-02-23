@@ -1,96 +1,682 @@
 ﻿@{
     ViewData["Title"] = "Game Zone";
+
+    // Safe helper to read per-game stats from ViewBag
+    dynamic gameStats = ViewBag.GameStats
+        ?? new Dictionary<string, object>();
+
+    int totalPlays = ViewBag.TotalPlays ?? 0;
+    int uniquePlayers = ViewBag.UniquePlayers ?? 0;
+
+    dynamic GetStat(string name)
+    {
+        var d = ViewBag.GameStats as Dictionary<string, dynamic>;
+        return d != null && d.ContainsKey(name) ? d[name] : null;
+    }
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
 <style>
-    body {
-        background: linear-gradient(to right, #d7f0ff, #fef6ff);
-        font-family: 'Poppins', sans-serif;
+    :root {
+        --bg: #080c10;
+        --card: #0d1117;
+        --border: #1e2d3d;
+        --text: #e2e8f0;
+        --muted: #64748b;
+        --pixel: 'Press Start 2P', monospace;
+        --body: 'Nunito', sans-serif;
     }
 
-    .game-zone-container {
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        padding: 40px 30px;
-        transition: all 0.3s ease-in-out;
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
     }
 
-    .game-zone-container:hover {
-        transform: scale(1.01);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    .gz-root {
+        min-height: calc(100vh - 56px);
+        background: var(--bg);
+        font-family: var(--body);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px 60px;
+        position: relative;
+        overflow: hidden;
     }
 
-    .game-btn {
-        border: none;
-        border-radius: 12px;
+        .gz-root::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .gz-root::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: -200px;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 12s ease-in-out infinite;
+        }
+
+    @@keyframes orbFloat {
+        0%, 100% {
+            transform: translate(0,0);
+        }
+
+        50% {
+            transform: translate(80px,60px);
+        }
+    }
+
+    .gz-inner {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1000px;
+    }
+
+    /* ── Header ── */
+    .gz-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .gz-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 999px;
+        padding: 6px 16px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+
+    .gz-title {
+        font-family: var(--pixel);
+        font-size: clamp(16px, 3.5vw, 28px);
+        color: #fff;
+        letter-spacing: 2px;
+        margin-bottom: 14px;
+        line-height: 1.4;
+    }
+
+        .gz-title span {
+            color: #fbbf24;
+        }
+
+    .gz-sub {
+        font-size: 15px;
+        color: var(--muted);
         font-weight: 600;
-        transition: all 0.3s ease;
     }
 
-    .game-btn:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    /* ── Live Stats Bar ── */
+    .gz-stats {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        margin-bottom: 36px;
+        flex-wrap: wrap;
     }
 
-    .snake-btn {
-        background: linear-gradient(135deg, #43a047, #66bb6a);
+    .stat-chip {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+    }
+
+        .stat-chip i {
+            font-size: 16px;
+            color: #fbbf24;
+        }
+
+        .stat-chip strong {
+            color: #fff;
+        }
+
+    /* ── Game Cards Grid ── */
+    .gz-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 36px;
+    }
+
+    .game-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 26px 20px 22px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            transition: height 0.25s ease;
+        }
+
+        .game-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            background: radial-gradient(circle at 50% 0%, var(--glow) 0%, transparent 65%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
+        .game-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-border);
+            box-shadow: 0 16px 40px var(--shadow);
+            color: #fff;
+        }
+
+            .game-card:hover::before {
+                height: 4px;
+            }
+
+            .game-card:hover::after {
+                opacity: 1;
+            }
+
+    .card-snake {
+        --accent: linear-gradient(90deg,#16a34a,#4ade80);
+        --accent-border: rgba(74,222,128,0.4);
+        --glow: rgba(74,222,128,0.08);
+        --shadow: rgba(34,197,94,0.18);
+        --icon-bg: rgba(34,197,94,0.12);
+        --icon-color: #4ade80;
+    }
+
+    .card-tictac {
+        --accent: linear-gradient(90deg,#d97706,#fbbf24);
+        --accent-border: rgba(251,191,36,0.4);
+        --glow: rgba(251,191,36,0.08);
+        --shadow: rgba(251,191,36,0.18);
+        --icon-bg: rgba(251,191,36,0.12);
+        --icon-color: #fbbf24;
+    }
+
+    .card-plane {
+        --accent: linear-gradient(90deg,#0891b2,#22d3ee);
+        --accent-border: rgba(34,211,238,0.4);
+        --glow: rgba(34,211,238,0.08);
+        --shadow: rgba(34,211,238,0.18);
+        --icon-bg: rgba(34,211,238,0.12);
+        --icon-color: #67e8f9;
+    }
+
+    .card-doll {
+        --accent: linear-gradient(90deg,#be185d,#ec4899);
+        --accent-border: rgba(236,72,153,0.4);
+        --glow: rgba(236,72,153,0.08);
+        --shadow: rgba(236,72,153,0.18);
+        --icon-bg: rgba(236,72,153,0.12);
+        --icon-color: #f9a8d4;
+    }
+
+    .card-icon-wrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        background: var(--icon-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        margin-bottom: 14px;
+        transition: transform 0.25s ease;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .game-card:hover .card-icon-wrap {
+        transform: scale(1.1) rotate(-3deg);
+    }
+
+    .card-name {
+        font-family: var(--pixel);
+        font-size: clamp(8px, 1.2vw, 10px);
         color: #fff;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+        line-height: 1.5;
     }
 
-    .tic-btn {
-        background: linear-gradient(135deg, #ffa000, #ffca28);
+    .card-desc {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+        line-height: 1.5;
+        margin-bottom: 14px;
+    }
+
+    /* Live mini stats under description */
+    .card-live-stats {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .cls-pill {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+    }
+
+        .cls-pill i {
+            font-size: 11px;
+            color: var(--icon-color);
+        }
+
+        .cls-pill span {
+            color: #fff;
+        }
+
+    .card-play-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        border-radius: 8px;
+        background: var(--icon-bg);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: var(--icon-color);
+        font-size: 12px;
+        font-weight: 800;
+        transition: all 0.2s ease;
+        letter-spacing: 0.3px;
+        margin-top: auto;
+    }
+
+    .game-card:hover .card-play-btn {
+        background: var(--accent);
+        border-color: transparent;
         color: #fff;
+        box-shadow: 0 4px 14px var(--shadow);
     }
 
-    .plane-btn {
-        background: linear-gradient(135deg, #e53935, #ff5252);
-        color: #fff;
+    /* ── Recent Activity ── */
+    .gz-section-title {
+        font-family: var(--pixel);
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .snake-btn:hover {
-        background: linear-gradient(135deg, #2e7d32, #43a047);
+    .recent-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 36px;
     }
 
-    .tic-btn:hover {
-        background: linear-gradient(135deg, #f57c00, #ffb300);
+        .recent-table th {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .recent-table td {
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(30,45,61,0.5);
+            vertical-align: middle;
+        }
+
+        .recent-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .recent-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+    .game-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
     }
 
-    .plane-btn:hover {
-        background: linear-gradient(135deg, #c62828, #e53935);
+    .gb-snake {
+        background: rgba(34,197,94,0.12);
+        color: #4ade80;
     }
 
-    footer {
-        margin-top: 60px;
-        color: #555;
+    .gb-ttt {
+        background: rgba(251,191,36,0.12);
+        color: #fbbf24;
+    }
+
+    .gb-plane {
+        background: rgba(34,211,238,0.12);
+        color: #67e8f9;
+    }
+
+    .gb-doll {
+        background: rgba(236,72,153,0.12);
+        color: #f9a8d4;
+    }
+
+    .gb-other {
+        background: rgba(148,163,184,0.12);
+        color: #94a3b8;
+    }
+
+    .result-win {
+        color: #4ade80;
+        font-weight: 700;
+    }
+
+    .result-over {
+        color: #f87171;
+        font-weight: 700;
+    }
+
+    .result-draw {
+        color: #fbbf24;
+        font-weight: 700;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 28px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.02);
+        border-radius: 12px;
+        border: 1px dashed var(--border);
+        margin-bottom: 36px;
+    }
+
+    /* ── Footer ── */
+    .gz-credit {
+        text-align: center;
+        padding: 20px 28px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+        .gz-credit .credit-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(59,130,246,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .gz-credit .credit-text {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+            .gz-credit .credit-text span {
+                color: #60a5fa;
+            }
+
+    /* ── Responsive ── */
+    @@media (max-width: 600px) {
+        .gz-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .gz-title {
+            font-size: 14px;
+        }
+
+        .recent-table th:nth-child(4),
+        .recent-table td:nth-child(4) {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 400px) {
+        .gz-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
-<div class="container mt-5 text-center">
-    <div class="game-zone-container">
-        <h2 class="mb-3 text-primary fw-bold">🎮 Welcome to Game Zone 🎮</h2>
-        <p class="text-muted mb-4 fs-5">Select your favorite game and start the fun!</p>
+<div class="gz-root">
+    <div class="gz-inner">
 
-        <div class="d-flex flex-wrap justify-content-center gap-4 mb-4">
-            <a asp-action="Snake" class="game-btn snake-btn btn-lg px-5 py-3">
-                🐍 Snake Game
-            </a>
-            <a asp-action="TicTacToe" class="game-btn tic-btn btn-lg px-5 py-3">
-                ❌ Tic Tac Toe ⭕
-            </a>
-            <a asp-action="PlaneShooter" class="game-btn plane-btn btn-lg px-5 py-3">
-                ✈️ Plane Shooter
-            </a>
-            <a asp-action="CuteDollRunner" class="game-btn btn-lg px-5 py-3" style="background:linear-gradient(135deg,#7b1fa2,#ba68c8);color:white;">
-                👧 Cute Doll Runner
-            </a>
+        <!-- Live Stats Chips -->
+        <div class="gz-stats">
+            <div class="stat-chip">
+                <i class="bi bi-collection-fill"></i>
+                <strong>4</strong>&nbsp;Games Available
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-controller"></i>
+                Total Plays: <strong>@totalPlays</strong>
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-people-fill"></i>
+                Players: <strong>@uniquePlayers</strong>
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-trophy-fill"></i>
+                Leaderboards in each game
+            </div>
         </div>
 
-        <hr class="my-4">
+        <!-- Game Cards -->
+        <div class="gz-grid">
 
-        <div class="alert alert-info shadow-sm mb-0">
-            <h5 class="mb-0">Developed by <strong>Md Firoz Ali</strong> 💻 | Have Fun Playing!</h5>
+            @{
+                // Helper to get per-game data safely
+                var stats = ViewBag.GameStats as Dictionary<string, dynamic>;
+
+                int GetPlays(string n) => stats != null && stats.ContainsKey(n) ? (int)stats[n].Plays : 0;
+                int GetTop(string n) => stats != null && stats.ContainsKey(n) ? (int)stats[n].TopScore : 0;
+                string GetUser(string n) => stats != null && stats.ContainsKey(n) ? (string)stats[n].TopUser : "-";
+            }
+
+            <!-- Snake -->
+            <a asp-action="Snake" class="game-card card-snake">
+                <div class="card-icon-wrap">🐍</div>
+                <div class="card-name">SNAKE GAME</div>
+                <div class="card-desc">Eat food, grow longer, don't hit the walls!</div>
+                <div class="card-live-stats">
+                    <div class="cls-pill"><i class="bi bi-controller"></i> <span>@GetPlays("Snake")</span> plays</div>
+                    <div class="cls-pill"><i class="bi bi-trophy"></i> <span>@GetTop("Snake")</span> best</div>
+                </div>
+                <div class="card-play-btn"><i class="bi bi-play-fill"></i> Play Now</div>
+            </a>
+
+            <!-- Tic Tac Toe -->
+            <a asp-action="TicTacToe" class="game-card card-tictac">
+                <div class="card-icon-wrap">❌</div>
+                <div class="card-name">TIC TAC TOE</div>
+                <div class="card-desc">2-player classic — X vs O battle!</div>
+                <div class="card-live-stats">
+                    <div class="cls-pill"><i class="bi bi-controller"></i> <span>@GetPlays("TicTacToe")</span> plays</div>
+                    <div class="cls-pill"><i class="bi bi-trophy"></i> <span>@GetTop("TicTacToe")</span> best</div>
+                </div>
+                <div class="card-play-btn"><i class="bi bi-play-fill"></i> Play Now</div>
+            </a>
+
+            <!-- Plane Shooter -->
+            <a asp-action="PlaneShooter" class="game-card card-plane">
+                <div class="card-icon-wrap">✈️</div>
+                <div class="card-name">PLANE SHOOTER</div>
+                <div class="card-desc">Shoot down enemies, survive the waves!</div>
+                <div class="card-live-stats">
+                    <div class="cls-pill"><i class="bi bi-controller"></i> <span>@GetPlays("PlaneShooter")</span> plays</div>
+                    <div class="cls-pill"><i class="bi bi-trophy"></i> <span>@GetTop("PlaneShooter")</span> best</div>
+                </div>
+                <div class="card-play-btn"><i class="bi bi-play-fill"></i> Play Now</div>
+            </a>
+
+            <!-- Cute Doll Runner -->
+            <a asp-action="CuteDollRunner" class="game-card card-doll">
+                <div class="card-icon-wrap">💃</div>
+                <div class="card-name">DOLL RUNNER</div>
+                <div class="card-desc">Jump over obstacles, run as far as you can!</div>
+                <div class="card-live-stats">
+                    <div class="cls-pill"><i class="bi bi-controller"></i> <span>@GetPlays("CuteDollRunner")</span> plays</div>
+                    <div class="cls-pill"><i class="bi bi-trophy"></i> <span>@GetTop("CuteDollRunner")</span> best</div>
+                </div>
+                <div class="card-play-btn"><i class="bi bi-play-fill"></i> Play Now</div>
+            </a>
+
         </div>
+
+        <!-- Recent Activity -->
+        <div class="gz-section-title">
+            <i class="bi bi-clock-history"></i> Recent Activity
+        </div>
+
+        @{
+            var recent = ViewBag.RecentSessions as IEnumerable<dynamic>;
+        }
+
+        @if (recent != null && recent.Any())
+        {
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Result</th>
+                        <th>When</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in recent)
+                    {
+                        string gameName = s.GameName ?? "-";
+                        string badgeCls = gameName switch
+                        {
+                            "Snake" => "gb-snake",
+                            "TicTacToe" => "gb-ttt",
+                            "PlaneShooter" => "gb-plane",
+                            "CuteDollRunner" => "gb-doll",
+                            _ => "gb-other"
+                        };
+                        string gameLabel = gameName switch
+                        {
+                            "Snake" => "🐍 Snake",
+                            "TicTacToe" => "❌ TicTacToe",
+                            "PlaneShooter" => "✈️ Plane",
+                            "CuteDollRunner" => "💃 Doll",
+                            _ => gameName
+                        };
+
+                        string result = s.Result ?? "-";
+                        string resultCls = result.Contains("Win") ? "result-win" :
+                        result.Contains("Draw") ? "result-draw" : "result-over";
+
+                        DateTime createdAt = s.CreatedAt;
+                        string whenStr = (DateTime.Now - createdAt).TotalMinutes < 60
+                        ? $"{(int)(DateTime.Now - createdAt).TotalMinutes}m ago"
+                        : createdAt.ToString("dd MMM, HH:mm");
+
+                        <tr>
+                            <td><span class="game-badge @badgeCls">@Html.Raw(gameLabel)</span></td>
+                            <td>@(s.UserName ?? "Guest")</td>
+                            <td><strong>@s.Score</strong></td>
+                            <td><span class="@resultCls">@result</span></td>
+                            <td style="color:var(--muted);font-size:12px;">@whenStr</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-controller" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.4;"></i>
+                No games played yet — be the first to set a score!
+            </div>
+        }
+
+        <!-- Footer -->
+        <div class="gz-credit">
+            <div class="credit-icon">💻</div>
+            <div class="credit-text">
+                Developed by <span>Md Firoz Ali</span> &nbsp;·&nbsp; Task Management System &nbsp;·&nbsp; Have Fun Playing!
+            </div>
+        </div>
+
     </div>
 </div>
-

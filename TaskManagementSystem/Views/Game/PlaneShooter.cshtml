@@ -2,240 +2,774 @@
     ViewData["Title"] = "Plane Shooter";
 }
 
-<h2 class="text-center mb-4 text-light bg-dark py-2 rounded">✈️ Plane Shooter</h2>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
 
-<div class="d-flex justify-content-center gap-4 flex-wrap">
-    <!-- 🎮 Game Canvas -->
-    <div>
-        <canvas id="gameCanvas" width="700" height="600" style="border:2px solid #000; background:#071022;"></canvas>
+<style>
+    :root {
+        --cyan: #22d3ee;
+        --cyan2: #0891b2;
+        --neon: #67e8f9;
+        --red: #ef4444;
+        --yellow: #fbbf24;
+        --green: #22c55e;
+        --purple: #a855f7;
+        --bg: #020814;
+        --card: #050f1c;
+        --border: #0e2a40;
+        --text: #cffafe;
+        --muted: #6b7280;
+        --pixel: 'Press Start 2P', monospace;
+        --body: 'Nunito', sans-serif;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: var(--body);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+    }
+
+    /* ── Page Header ── */
+    .game-header {
+        text-align: center;
+        padding: 28px 20px 16px;
+    }
+
+    .game-title {
+        font-family: var(--pixel);
+        font-size: clamp(14px, 3vw, 22px);
+        color: var(--neon);
+        text-shadow: 0 0 20px rgba(103,232,249,0.6), 0 0 40px rgba(103,232,249,0.3);
+        letter-spacing: 2px;
+        animation: titlePulse 2.5s ease-in-out infinite;
+    }
+
+    @@keyframes titlePulse {
+        0%, 100% {
+            text-shadow: 0 0 20px rgba(103,232,249,0.6), 0 0 40px rgba(103,232,249,0.3);
+        }
+
+        50% {
+            text-shadow: 0 0 30px rgba(103,232,249,0.9), 0 0 60px rgba(103,232,249,0.5);
+        }
+    }
+
+    .game-subtitle {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 8px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    /* ── Main layout ── */
+    .game-layout {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 0 16px 40px;
+        flex-wrap: wrap;
+    }
+
+    /* ── Canvas wrapper ── */
+    .canvas-wrap {
+        position: relative;
+        flex-shrink: 1;
+        min-width: 0;
+        /* max 420px; on small screens fills viewport */
+        width: min(420px, calc(100vw - 32px));
+    }
+
+    #gameCanvas {
+        display: block;
+        width: 100%; /* scales to wrapper */
+        height: auto; /* keeps 420:560 (3:4) ratio */
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        background: #020814;
+        box-shadow: 0 0 0 1px var(--border), 0 0 60px rgba(34,211,238,0.08), inset 0 0 80px rgba(0,0,0,0.8);
+    }
+
+    /* Overlay */
+    .canvas-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: rgba(2,8,20,0.92);
+        backdrop-filter: blur(3px);
+        z-index: 10;
+        transition: opacity 0.3s;
+    }
+
+        .canvas-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+    .overlay-icon {
+        font-size: clamp(36px,5vw,56px);
+        margin-bottom: 14px;
+        animation: bounceIn 0.5s ease both;
+    }
+
+    .overlay-title {
+        font-family: var(--pixel);
+        font-size: clamp(10px,1.6vw,16px);
+        color: var(--neon);
+        text-shadow: 0 0 16px rgba(103,232,249,0.7);
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .overlay-sub {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .overlay-score {
+        font-family: var(--pixel);
+        font-size: clamp(9px,1.4vw,13px);
+        color: var(--yellow);
+        margin: 14px 0 4px;
+    }
+
+    @@keyframes bounceIn {
+        0% {
+            transform: scale(0.4);
+            opacity: 0;
+        }
+
+        70% {
+            transform: scale(1.12);
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* ── Side Panel ── */
+    .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 210px;
+        max-width: 260px;
+        flex: 1;
+    }
+
+    .panel-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    .panel-card-title {
+        font-family: var(--pixel);
+        font-size: 9px;
+        color: var(--neon);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Stats grid */
+    .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .stat-box {
+        background: #040d1a;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 8px;
+        text-align: center;
+    }
+
+        .stat-box .slbl {
+            font-size: 9px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-box .sval {
+            font-family: var(--pixel);
+            font-size: clamp(12px,2.5vw,18px);
+            color: var(--yellow);
+            text-shadow: 0 0 10px rgba(251,191,36,0.5);
+        }
+
+        .stat-box.wave .sval {
+            color: var(--neon);
+            text-shadow: 0 0 10px rgba(103,232,249,0.5);
+        }
+
+    /* Hearts */
+    .hearts {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 6px;
+    }
+
+    .heart {
+        font-size: 20px;
+        transition: all 0.3s;
+    }
+
+        .heart.lost {
+            opacity: 0.2;
+            filter: grayscale(1);
+        }
+
+    /* Buttons */
+    .game-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .gbtn {
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        padding: 11px 14px;
+        font-family: var(--body);
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .gbtn-start {
+        background: linear-gradient(135deg,#0891b2,#22d3ee);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(34,211,238,0.3);
+    }
+
+    .gbtn-pause {
+        background: linear-gradient(135deg,#d97706,#fbbf24);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(251,191,36,0.25);
+    }
+
+    .gbtn-reset {
+        background: linear-gradient(135deg,#b91c1c,#ef4444);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(239,68,68,0.25);
+    }
+
+    .gbtn:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+    }
+
+    .gbtn:active {
+        transform: translateY(0);
+        filter: brightness(0.95);
+    }
+
+    .gbtn i {
+        font-size: 16px;
+    }
+
+    /* Move + Shoot */
+    .move-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .mbtn {
+        flex: 1;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 0;
+        background: #040d1a;
+        color: var(--neon);
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.12s;
+        user-select: none;
+    }
+
+        .mbtn:hover {
+            background: #091a2d;
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px rgba(34,211,238,0.2);
+        }
+
+        .mbtn:active {
+            background: var(--cyan2);
+            color: #fff;
+            transform: scale(0.94);
+        }
+
+    .shoot-btn {
+        width: 100%;
+        border: 1px solid rgba(249,115,22,0.4);
+        border-radius: 10px;
+        padding: 12px 0;
+        background: rgba(249,115,22,0.1);
+        color: #fb923c;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.12s;
+        font-family: var(--body);
+    }
+
+        .shoot-btn:hover {
+            background: rgba(249,115,22,0.2);
+            box-shadow: 0 0 14px rgba(249,115,22,0.3);
+        }
+
+        .shoot-btn:active {
+            transform: scale(0.96);
+        }
+
+        .shoot-btn i {
+            font-size: 16px;
+        }
+
+    /* Leaderboard */
+    .lb-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        background: #040d1a;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .lb-rank {
+        font-family: var(--pixel);
+        font-size: 9px;
+        color: var(--muted);
+        min-width: 20px;
+    }
+
+        .lb-rank.gold {
+            color: #fbbf24;
+        }
+
+        .lb-rank.silver {
+            color: #94a3b8;
+        }
+
+        .lb-rank.bronze {
+            color: #b45309;
+        }
+
+    .lb-name {
+        flex: 1;
+        color: var(--text);
+        font-size: 12px;
+    }
+
+    .lb-score {
+        font-family: var(--pixel);
+        font-size: 9px;
+        color: var(--neon);
+    }
+
+    /* ── Responsive ── */
+    @@media (max-width: 700px) {
+        .game-layout {
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 0 10px 30px;
+        }
+
+        .canvas-wrap {
+            width: min(420px, calc(100vw - 20px));
+        }
+
+        .side-panel {
+            max-width: 100%;
+            min-width: unset;
+            width: 100%;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .panel-card {
+            flex: 1;
+            min-width: 140px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .overlay-icon {
+            font-size: 36px;
+        }
+    }
+</style>
+
+<!-- ══ Page Header ══ -->
+<div class="game-header">
+    <div class="game-title">✈️ PLANE SHOOTER</div>
+    <div class="game-subtitle">← → Move &nbsp;·&nbsp; Space = Shoot</div>
+</div>
+
+<!-- ══ Game Layout ══ -->
+<div class="game-layout">
+
+    <!-- Canvas -->
+    <div class="canvas-wrap">
+        <!-- logical resolution unchanged: 420×560 -->
+        <canvas id="gameCanvas" width="420" height="560"></canvas>
+        <div class="canvas-overlay" id="overlay">
+            <div class="overlay-icon">✈️</div>
+            <div class="overlay-title">READY TO FLY?</div>
+            <div class="overlay-sub">Press Start or Space to shoot</div>
+        </div>
     </div>
 
-    <!-- 🧭 Control Panel -->
-    <div class="d-flex flex-column align-items-start text-light bg-dark p-3 rounded" style="min-width:200px;">
-        <h5 class="text-warning mb-3">Game Controls</h5>
+    <!-- Side Panel -->
+    <div class="side-panel">
 
-        <button id="startBtn" class="btn btn-success mb-2 w-100">▶ Start</button>
-        <button id="pauseBtn" class="btn btn-warning mb-2 w-100">⏸ Pause</button>
-        <button id="resetBtn" class="btn btn-danger mb-3 w-100">🔄 Reset</button>
-
-        <div class="border rounded p-3 bg-secondary mb-3 w-100 text-center">
-            <h6 class="fw-bold text-light mb-2">Movement</h6>
-            <div class="d-flex justify-content-center gap-2 mb-2">
-                <button class="btn btn-outline-light control-btn" data-dir="left">⬅ Left (←)</button>
-                <button class="btn btn-outline-light control-btn" data-dir="right">➡ Right (→)</button>
+        <!-- Stats -->
+        <div class="panel-card">
+            <div class="panel-card-title"><i class="bi bi-trophy-fill"></i> Stats</div>
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="slbl">Score</div>
+                    <div class="sval" id="scoreVal">0</div>
+                </div>
+                <div class="stat-box wave">
+                    <div class="slbl">Wave</div>
+                    <div class="sval" id="waveVal">1</div>
+                </div>
             </div>
-            <button class="btn btn-outline-warning control-btn w-100" data-dir="shoot">🔫 Shoot (Space)</button>
+            <div class="panel-card-title" style="margin-top:12px;margin-bottom:6px;"><i class="bi bi-heart-fill" style="color:var(--red)"></i> Lives</div>
+            <div class="hearts" id="heartsDisplay">
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+            </div>
         </div>
 
-        <div class="mt-2">
-            <p id="score"><strong>Score:</strong> 0</p>
-            <p id="lives"><strong>Lives:</strong> 3</p>
+        <!-- Controls -->
+        <div class="panel-card">
+            <div class="panel-card-title"><i class="bi bi-joystick"></i> Controls</div>
+            <div class="game-btns" style="margin-bottom:12px;">
+                <button class="gbtn gbtn-start" id="startBtn"><i class="bi bi-play-fill"></i> Start</button>
+                <button class="gbtn gbtn-pause" id="pauseBtn"><i class="bi bi-pause-fill"></i> Pause</button>
+                <button class="gbtn gbtn-reset" id="resetBtn"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+            </div>
+            <div class="panel-card-title" style="margin-bottom:8px;"><i class="bi bi-controller"></i> Move</div>
+            <div class="move-row">
+                <button class="mbtn" id="moveLeft"><i class="bi bi-caret-left-fill"></i></button>
+                <button class="mbtn" id="moveRight"><i class="bi bi-caret-right-fill"></i></button>
+            </div>
+            <button class="shoot-btn" id="shootBtn"><i class="bi bi-lightning-fill"></i> FIRE!</button>
         </div>
+
+        <!-- Leaderboard -->
+        <div class="panel-card">
+            <div class="panel-card-title"><i class="bi bi-bar-chart-fill"></i> Top Scores</div>
+            <div id="leaderboard">
+                <div style="font-size:12px;color:var(--muted);text-align:center;padding:10px 0;">Play to set a score!</div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    (function() {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const W = canvas.width;
-        const H = canvas.height;
+    (function(){
+        const canvas = document.getElementById("gameCanvas");
+        const ctx    = canvas.getContext("2d");
+        // W/H = logical canvas size (attribute) — never changes
+        const W = canvas.width;   // 420
+        const H = canvas.height;  // 560
 
-        // ✈️ Player plane
-        const player = { w: 60, h: 40, x: Math.floor(W/2) - 30, y: H - 60, speed: 6, movingLeft: false, movingRight: false };
+        /* ── State ── */
+        const player = { w:56, h:38, x:0, y:0, speed:6, ml:false, mr:false };
+        let bullets=[], enemies=[], particles=[];
+        let score=0, lives=3, wave=1, frameCount=0;
+        let enemyTimer=0, enemyInterval=70;
+        let gameInterval=null, running=false, sessionSaved=false;
+        let shootCooldown=0, startedAt=null;
 
-        // 🎯 Game state
-        let bullets = [];
-        let enemies = [];
-        let enemyTimer = 0;
-        let enemyInterval = 80;
-        let frameCount = 0;
-        let gameInterval = null;
-        let running = false;
-        let score = 0;
-        let lives = 3;
-        let shootCooldown = 0;
+        function initPlayer(){ player.x=W/2-player.w/2; player.y=H-70; }
 
-        function drawPlane(x, y, w, h, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(x + 10, y);
-            ctx.lineTo(x + w - 10, y);
-            ctx.quadraticCurveTo(x + w, y + h/2, x + w - 10, y + h);
-            ctx.lineTo(x + 10, y + h);
-            ctx.quadraticCurveTo(x, y + h/2, x + 10, y);
-            ctx.closePath();
-            ctx.fill();
-        }
+        const stars = Array.from({length:80},(_,i)=>({
+            x:(i*137.5)%100, y:(i*73.1)%100,
+            r:Math.random()<0.3?1.5:1, a:0.3+Math.random()*0.7
+        }));
 
-        function spawnEnemy() {
-            const size = 30 + Math.floor(Math.random()*30);
-            const ex = Math.floor(Math.random() * (W - size));
-            const ey = -size;
-            const speed = 1 + Math.random()*2.2;
-            enemies.push({ x: ex, y: ey, w: size, h: size, speed });
-        }
+        /* ── Draw ── */
+        function draw(){
+            ctx.fillStyle="#020814"; ctx.fillRect(0,0,W,H);
 
-        function fireBullet() {
-            if (shootCooldown > 0) return;
-            bullets.push({ x: player.x + player.w/2 - 4, y: player.y - 10, w: 8, h: 12, speed: 8 });
-            shootCooldown = 12;
-        }
-
-        function rectsCollide(a, b) {
-            return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-        }
-
-        function resetGame() {
-            bullets = [];
-            enemies = [];
-            enemyTimer = 0;
-            frameCount = 0;
-            score = 0;
-            lives = 3;
-            shootCooldown = 0;
-            updateHUD();
-            player.x = Math.floor(W/2) - player.w/2;
-            pauseGame();
-            draw();
-        }
-
-        function updateHUD() {
-            document.getElementById('score').innerHTML = '<strong>Score:</strong> ' + score;
-            document.getElementById('lives').innerHTML = '<strong>Lives:</strong> ' + lives;
-        }
-
-        function startGame() {
-            if (running) return;
-            running = true;
-            gameInterval = setInterval(gameLoop, 1000/60);
-        }
-
-        function pauseGame() {
-            running = false;
-            clearInterval(gameInterval);
-            gameInterval = null;
-        }
-
-        function gameOver() {
-            pauseGame();
-            alert('💥 Game Over! Final Score: ' + score);
-        }
-
-        function draw() {
-            ctx.fillStyle = "#071022";
-            ctx.fillRect(0,0,W,H);
-
-            // stars
-            ctx.fillStyle = "#1b2b3a";
-            for (let i=0;i<60;i++){
-                const sx = (i*37) % W;
-                const sy = (i*53) % H;
-                ctx.fillRect(sx, sy, 1, 1);
-            }
-
-            drawPlane(player.x, player.y, player.w, player.h, "#4CAF50");
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(player.x + player.w/2 - 8, player.y + 6, 16, 12);
-
-            ctx.fillStyle = "#FFD54F";
-            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
-
-            ctx.fillStyle = "#E91E63";
-            enemies.forEach(e => {
-                ctx.fillRect(e.x, e.y, e.w, e.h);
-                ctx.fillStyle = "#b01444";
-                ctx.fillRect(e.x + e.w*0.15, e.y + e.h*0.6, e.w*0.7, e.h*0.2);
-                ctx.fillStyle = "#E91E63";
+            stars.forEach(s=>{
+                ctx.fillStyle=`rgba(200,230,255,${s.a})`;
+                ctx.beginPath(); ctx.arc(s.x/100*W,s.y/100*H,s.r,0,Math.PI*2); ctx.fill();
             });
 
-            ctx.fillStyle = "#fff";
-            ctx.font = "14px Arial";
-            ctx.fillText('Score: ' + score, 10, 20);
-            ctx.fillText('Lives: ' + lives, 10, 40);
+            particles.forEach(p=>{
+                ctx.globalAlpha=p.life/p.maxLife; ctx.fillStyle=p.color;
+                ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha=1;
+
+            enemies.forEach(e=>{
+                ctx.save(); ctx.shadowColor="#ef4444"; ctx.shadowBlur=12;
+                ctx.fillStyle="#991b1b"; drawTriangle(e.x+e.w/2,e.y,e.w*0.4,e.w*0.3,true);
+                ctx.fillStyle="#ef4444"; drawTriangle(e.x+e.w/2,e.y+e.w*0.15,e.w*0.55,e.h*0.6,true);
+                ctx.shadowBlur=0; ctx.restore();
+            });
+
+            ctx.shadowColor="#fbbf24"; ctx.shadowBlur=10;
+            bullets.forEach(b=>{
+                const gr=ctx.createLinearGradient(b.x,b.y,b.x,b.y+b.h);
+                gr.addColorStop(0,"#fde68a"); gr.addColorStop(1,"#f59e0b");
+                ctx.fillStyle=gr;
+                ctx.beginPath(); ctx.roundRect(b.x,b.y,b.w,b.h,3); ctx.fill();
+            });
+            ctx.shadowBlur=0;
+
+            ctx.save(); ctx.shadowColor="#22d3ee"; ctx.shadowBlur=20;
+            ctx.fillStyle="#0891b2";
+            ctx.beginPath();
+            ctx.moveTo(player.x+player.w/2,player.y);
+            ctx.lineTo(player.x+player.w-8,player.y+player.h);
+            ctx.lineTo(player.x+8,player.y+player.h);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle="#22d3ee";
+            ctx.beginPath();
+            ctx.moveTo(player.x,player.y+player.h*0.5);
+            ctx.lineTo(player.x+player.w,player.y+player.h*0.5);
+            ctx.lineTo(player.x+player.w*0.75,player.y+player.h*0.8);
+            ctx.lineTo(player.x+player.w*0.25,player.y+player.h*0.8);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle="#67e8f9";
+            ctx.beginPath(); ctx.ellipse(player.x+player.w/2,player.y+player.h*0.35,8,10,0,0,Math.PI*2); ctx.fill();
+            ctx.shadowBlur=0; ctx.restore();
         }
 
-        function updateLogic() {
-            if (player.movingLeft) player.x -= player.speed;
-            if (player.movingRight) player.x += player.speed;
-            if (player.x < 0) player.x = 0;
-            if (player.x + player.w > W) player.x = W - player.w;
+        function drawTriangle(cx,cy,hw,h,down){
+            ctx.beginPath();
+            ctx.moveTo(cx, cy+(down?h:0));
+            ctx.lineTo(cx-hw, cy+(down?0:h));
+            ctx.lineTo(cx+hw, cy+(down?0:h));
+            ctx.closePath(); ctx.fill();
+        }
 
-            bullets.forEach(b => b.y -= b.speed);
-            bullets = bullets.filter(b => b.y > -10);
+        /* ── Logic ── */
+        function spawnEnemy(){
+            const w=28+Math.random()*22;
+            enemies.push({x:Math.random()*(W-w),y:-w,w,h:w*1.1,speed:1.2+Math.random()*2.2});
+        }
 
-            enemies.forEach(e => e.y += e.speed);
-            enemies = enemies.filter(e => e.y < H + 50);
+        function fireBullet(){
+            if(shootCooldown>0||!running) return;
+            bullets.push({x:player.x+player.w/2-3,y:player.y-8,w:6,h:14,speed:10});
+            shootCooldown=10;
+        }
+
+        function spawnParticles(x,y,color){
+            for(let i=0;i<8;i++){
+                const angle=(Math.PI*2/8)*i;
+                particles.push({x,y,vx:Math.cos(angle)*2.5,vy:Math.sin(angle)*2.5,r:2+Math.random()*2,color,life:18,maxLife:18});
+            }
+        }
+
+        function rectsCollide(a,b){ return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y; }
+
+        function updateLivesUI(){
+            const hearts=document.querySelectorAll(".heart");
+            hearts.forEach((h,i)=>h.classList.toggle("lost",i>=lives));
+        }
+
+        function updateUI(){
+            document.getElementById("scoreVal").textContent=score;
+            document.getElementById("waveVal").textContent=wave;
+            updateLivesUI();
+        }
+
+        function updateLogic(){
+            if(player.ml) player.x-=player.speed;
+            if(player.mr) player.x+=player.speed;
+            player.x=Math.max(0,Math.min(W-player.w,player.x));
+
+            bullets.forEach(b=>b.y-=b.speed);
+            bullets=bullets.filter(b=>b.y>-20);
+            enemies.forEach(e=>e.y+=e.speed);
+            particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life--;});
+            particles=particles.filter(p=>p.life>0);
 
             enemyTimer++;
-            if (enemyTimer >= enemyInterval) {
-                spawnEnemy();
-                enemyTimer = 0;
-                if (enemyInterval > 25 && frameCount % 300 === 0) enemyInterval--;
+            if(enemyTimer>=enemyInterval){
+                spawnEnemy(); enemyTimer=0;
+                if(frameCount%300===0&&enemyInterval>25) enemyInterval--;
+                if(frameCount%500===0){wave++;updateUI();}
             }
 
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const en = enemies[i];
-                for (let j = bullets.length - 1; j >= 0; j--) {
-                    const bu = bullets[j];
-                    if (rectsCollide(en, bu)) {
-                        enemies.splice(i, 1);
-                        bullets.splice(j, 1);
-                        score += 10;
-                        updateHUD();
-                        break;
+            for(let i=enemies.length-1;i>=0;i--){
+                for(let j=bullets.length-1;j>=0;j--){
+                    if(rectsCollide(enemies[i],bullets[j])){
+                        spawnParticles(enemies[i].x+enemies[i].w/2,enemies[i].y+enemies[i].h/2,"#ef4444");
+                        enemies.splice(i,1); bullets.splice(j,1);
+                        score+=10; updateUI(); break;
                     }
                 }
             }
 
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const en = enemies[i];
-                if (rectsCollide(en, player) || en.y + en.h >= H - 5) {
-                    enemies.splice(i, 1);
-                    lives--;
-                    updateHUD();
-                    if (lives <= 0) return gameOver();
+            for(let i=enemies.length-1;i>=0;i--){
+                if(rectsCollide(enemies[i],player)||enemies[i].y+enemies[i].h>=H){
+                    spawnParticles(enemies[i].x+enemies[i].w/2,enemies[i].y,"#f97316");
+                    enemies.splice(i,1); lives--; updateUI();
+                    if(lives<=0) return gameOver();
                 }
             }
 
-            if (shootCooldown > 0) shootCooldown--;
+            if(shootCooldown>0) shootCooldown--;
             frameCount++;
         }
 
-        function gameLoop() {
-            if (!running) return;
-            updateLogic();
-            draw();
+        function gameLoop(){ if(!running) return; updateLogic(); draw(); }
+
+        function gameOver(){
+            stopAll();
+            showOverlay("💥","GAME OVER","Press Reset to try again",true);
+            saveSession("GameOver");
         }
 
-        // 🎮 Keyboard controls
-        document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft') player.movingLeft = true;
-            if (e.key === 'ArrowRight') player.movingRight = true;
-            if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); fireBullet(); }
+        /* ── Controls ── */
+        function startGame(){
+            if(running) return;
+            hideOverlay();
+            if(!startedAt) startedAt=new Date();
+            running=true;
+            if(gameInterval) clearInterval(gameInterval);
+            gameInterval=setInterval(gameLoop,1000/60);
+        }
+
+        function pauseGame(){
+            if(!running) return;
+            stopAll();
+            showOverlay("⏸️","PAUSED","Press Start to continue",false);
+        }
+
+        function resetGame(){
+            stopAll(); sessionSaved=false;
+            score=0; lives=3; wave=1; frameCount=0; enemyTimer=0; enemyInterval=70;
+            bullets=[]; enemies=[]; particles=[]; shootCooldown=0; startedAt=null;
+            initPlayer(); updateUI(); draw();
+            showOverlay("✈️","READY TO FLY?","Press Start or Space to shoot",false);
+        }
+
+        function stopAll(){ running=false; clearInterval(gameInterval); gameInterval=null; }
+
+        function showOverlay(icon,title,sub,showScore){
+            const ov=document.getElementById("overlay");
+            ov.innerHTML=`<div class="overlay-icon">${icon}</div>
+                <div class="overlay-title">${title}</div>
+                ${showScore?`<div class="overlay-score">SCORE: ${score}</div>`:""}
+                <div class="overlay-sub">${sub}</div>`;
+            ov.classList.remove("hidden");
+        }
+        function hideOverlay(){ document.getElementById("overlay").classList.add("hidden"); }
+
+        /* ── Keyboard ── */
+        document.addEventListener("keydown",e=>{
+            if(e.key==="ArrowLeft")  {e.preventDefault();player.ml=true;}
+            if(e.key==="ArrowRight") {e.preventDefault();player.mr=true;}
+            if(e.key===" "||e.code==="Space"){e.preventDefault();running?fireBullet():startGame();}
         });
-        document.addEventListener('keyup', e => {
-            if (e.key === 'ArrowLeft') player.movingLeft = false;
-            if (e.key === 'ArrowRight') player.movingRight = false;
+        document.addEventListener("keyup",e=>{
+            if(e.key==="ArrowLeft")  player.ml=false;
+            if(e.key==="ArrowRight") player.mr=false;
         });
 
-        // 🕹️ Button Controls
-        document.querySelectorAll('.control-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const dir = btn.getAttribute('data-dir');
-                switch(dir) {
-                    case 'left': player.x -= player.speed * 3; break;
-                    case 'right': player.x += player.speed * 3; break;
-                    case 'shoot': fireBullet(); break;
-                }
-            });
-        });
+        /* ── Move buttons (hold) ── */
+        function holdButton(btn,flag){
+            let iv=null;
+            btn.addEventListener("mousedown", ()=>{flag(true);iv=setInterval(()=>flag(true),16);});
+            btn.addEventListener("touchstart",e=>{e.preventDefault();flag(true);iv=setInterval(()=>flag(true),16);},{passive:false});
+            const stop=()=>{flag(false);clearInterval(iv);};
+            btn.addEventListener("mouseup",stop); btn.addEventListener("mouseleave",stop);
+            btn.addEventListener("touchend",stop); btn.addEventListener("touchcancel",stop);
+        }
 
-        // Buttons
-        document.getElementById('startBtn').addEventListener('click', startGame);
-        document.getElementById('pauseBtn').addEventListener('click', pauseGame);
-        document.getElementById('resetBtn').addEventListener('click', resetGame);
+        holdButton(document.getElementById("moveLeft"),  v=>{if(v){player.x-=player.speed;}});
+        holdButton(document.getElementById("moveRight"), v=>{if(v){player.x+=player.speed;}});
+        document.getElementById("shootBtn").addEventListener("click", fireBullet);
+        document.getElementById("startBtn").addEventListener("click", startGame);
+        document.getElementById("pauseBtn").addEventListener("click", pauseGame);
+        document.getElementById("resetBtn").addEventListener("click", resetGame);
 
-        resetGame();
+        /* ── Save session ── */
+        function saveSession(result){
+            if(sessionSaved||score===0) return;
+            sessionSaved=true;
+            const dur=startedAt?Math.floor((new Date()-startedAt)/1000):0;
+            fetch('/Game/SaveSession',{method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({gameName:"PlaneShooter",score,durationSeconds:dur,result,startedAt:startedAt?startedAt.toISOString():new Date().toISOString(),extraData:JSON.stringify({wave})})
+            }).then(r=>r.json()).then(()=>loadLeaderboard()).catch(()=>{});
+        }
+
+        function loadLeaderboard(){
+            fetch('/Game/Leaderboard?gameName=PlaneShooter')
+                .then(r=>r.json())
+                .then(data=>{
+                    const lb=document.getElementById("leaderboard");
+                    if(!data.length){lb.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px 0;">No scores yet!</div>';return;}
+                    const rc=["gold","silver","bronze"];
+                    lb.innerHTML=data.map((row,i)=>`
+                        <div class="lb-row">
+                            <div class="lb-rank ${rc[i]||''}">#${i+1}</div>
+                            <div class="lb-name">${row.userName??"Guest"}</div>
+                            <div class="lb-score">${row.score}</div>
+                        </div>`).join('');
+                }).catch(()=>{});
+        }
+
+        /* ── Init ── */
+        initPlayer(); updateUI(); draw();
+        showOverlay("✈️","READY TO FLY?","Press Start or Space to shoot",false);
+        loadLeaderboard();
     })();
 </script>

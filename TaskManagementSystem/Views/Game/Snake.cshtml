@@ -81,17 +81,21 @@
     /* ── Canvas wrapper ──────────────────────────── */
     .canvas-wrap {
         position: relative;
-        flex-shrink: 0;
+        flex-shrink: 1; /* allow shrink on small screens */
+        min-width: 0;
+        /* keep aspect ratio 1200:700 = 12:7 */
+        width: min(1200px, calc(100vw - 32px));
     }
 
+    /* Responsive canvas — fills wrapper, keeps 12:7 ratio */
     #gameCanvas {
         display: block;
+        width: 100%;
+        height: auto; /* auto height preserves aspect ratio */
         border: 2px solid var(--border);
         border-radius: 12px;
         background: #050f05;
         box-shadow: 0 0 0 1px var(--border), 0 0 40px rgba(34,197,94,0.08), inset 0 0 60px rgba(0,0,0,0.6);
-        max-width: 100%;
-        height: auto;
     }
 
     /* Scanline overlay */
@@ -99,7 +103,7 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: repeating-linear-gradient( 0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px );
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
         border-radius: 12px;
         pointer-events: none;
     }
@@ -184,7 +188,7 @@
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 14px;
-        padding: 18px;
+        padding: 5px;
     }
 
     .panel-card-title {
@@ -211,7 +215,7 @@
         background: #0d1a0d;
         border: 1px solid var(--border);
         border-radius: 10px;
-        padding: 12px 8px;
+        padding: 0px 8px;
         text-align: center;
     }
 
@@ -449,10 +453,18 @@
     }
 
     /* ── Responsive ──────────────────────────────── */
-    @@media (max-width: 700px) {
+
+    /* Medium screens — side panel goes below canvas */
+    @@media (max-width: 900px) {
         .game-layout {
+            flex-direction: column;
+            align-items: center;
             gap: 14px;
             padding: 0 10px 30px;
+        }
+
+        .canvas-wrap {
+            width: min(1200px, calc(100vw - 20px));
         }
 
         .side-panel {
@@ -465,15 +477,11 @@
 
         .panel-card {
             flex: 1;
-            min-width: 140px;
-        }
-
-        #gameCanvas {
-            width: 100% !important;
-            height: auto !important;
+            min-width: 160px;
         }
     }
 
+    /* Small screens */
     @@media (max-width: 480px) {
         .dpad-btn {
             width: 42px;
@@ -485,21 +493,19 @@
             width: 42px;
             height: 42px;
         }
+
+        .overlay-icon {
+            font-size: 36px;
+        }
     }
 </style>
-
-<!-- ══ Page Header ══════════════════════════════════════ -->
-<div class="game-header">
-    <div class="game-title">🐍 SNAKE GAME</div>
-    <div class="game-subtitle">Use arrow keys or D-pad to control</div>
-</div>
-
 <!-- ══ Game Layout ═══════════════════════════════════════ -->
 <div class="game-layout">
 
     <!-- Canvas -->
     <div class="canvas-wrap">
-        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        <!-- width/height = logical resolution (unchanged: 1200×700) -->
+        <canvas id="gameCanvas" width="1200" height="700"></canvas>
 
         <!-- Start Overlay -->
         <div class="canvas-overlay" id="overlay">
@@ -594,26 +600,27 @@
 
 <script>
     /* ══ Canvas & Context ════════════════════════════════ */
-    const canvas  = document.getElementById("gameCanvas");
-    const ctx     = canvas.getContext("2d");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx    = canvas.getContext("2d");
 
-    const BLOCK   = 20;
-    const COLS    = canvas.width  / BLOCK;   // 25
-    const ROWS    = canvas.height / BLOCK;   // 25
+    // Logical grid is always based on the canvas ATTRIBUTE dimensions (1200×700)
+    const BLOCK = 20;
+    const COLS  = canvas.width  / BLOCK;   // 60
+    const ROWS  = canvas.height / BLOCK;   // 35
 
     /* ══ State ═══════════════════════════════════════════ */
     let snake, food, dx, dy, score, bestScore, gameInterval, running, paused;
     let startedAt, sessionSaved;
-    let speedMap = {1:220, 2:150, 3:100, 4:65, 5:40};
+    const speedMap = {1:220, 2:150, 3:100, 4:65, 5:40};
 
     function getSpeed() { return speedMap[+document.getElementById("speedSlider").value] || 150; }
 
     function initState() {
-        snake   = [{x:12, y:12}];
-        dx = 1; dy = 0;
-        score   = 0;
-        running = false;
-        paused  = false;
+        snake        = [{x: Math.floor(COLS/2), y: Math.floor(ROWS/2)}];
+        dx = 1; dy   = 0;
+        score        = 0;
+        running      = false;
+        paused       = false;
         sessionSaved = false;
         startedAt    = null;
         spawnFood();
@@ -630,11 +637,9 @@
 
     /* ══ Drawing ═════════════════════════════════════════ */
     function draw() {
-        // Background
         ctx.fillStyle = "#050f05";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Grid (subtle)
         ctx.strokeStyle = "rgba(34,197,94,0.04)";
         ctx.lineWidth = 0.5;
         for (let x = 0; x <= canvas.width; x += BLOCK) {
@@ -644,7 +649,6 @@
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
 
-        // Food — glowing circle
         const fx = food.x * BLOCK + BLOCK/2;
         const fy = food.y * BLOCK + BLOCK/2;
         const grad = ctx.createRadialGradient(fx, fy, 1, fx, fy, BLOCK/2);
@@ -658,7 +662,6 @@
         ctx.fill();
         ctx.shadowBlur  = 0;
 
-        // Snake
         snake.forEach((seg, i) => {
             const x = seg.x * BLOCK + 1;
             const y = seg.y * BLOCK + 1;
@@ -667,7 +670,6 @@
             const r = i === 0 ? 6 : 4;
 
             if (i === 0) {
-                // Head — brighter
                 ctx.shadowColor = "#4ade80";
                 ctx.shadowBlur  = 16;
                 ctx.fillStyle   = "#4ade80";
@@ -677,22 +679,20 @@
                 const alpha = Math.max(0.4, 1 - i * 0.035);
                 ctx.fillStyle = `rgba(34,197,94,${alpha})`;
             }
-
             ctx.beginPath();
             ctx.roundRect(x, y, w, h, r);
             ctx.fill();
             ctx.shadowBlur = 0;
         });
 
-        // Eyes on head
         if (snake.length > 0) {
-            const h = snake[0];
+            const h  = snake[0];
             const hx = h.x * BLOCK, hy = h.y * BLOCK;
-            ctx.fillStyle = "#fff";
+            ctx.fillStyle  = "#fff";
             ctx.shadowBlur = 0;
 
             let e1, e2;
-            if (dx === 1)       { e1={x:hx+13,y:hy+5};  e2={x:hx+13,y:hy+13}; }
+            if      (dx ===  1) { e1={x:hx+13,y:hy+5};  e2={x:hx+13,y:hy+13}; }
             else if (dx === -1) { e1={x:hx+5, y:hy+5};  e2={x:hx+5, y:hy+13}; }
             else if (dy === -1) { e1={x:hx+5, y:hy+5};  e2={x:hx+13,y:hy+5};  }
             else                { e1={x:hx+5, y:hy+13}; e2={x:hx+13,y:hy+13}; }
@@ -706,14 +706,8 @@
     function update() {
         const head = {x: snake[0].x + dx, y: snake[0].y + dy};
 
-        // Wall collision
-        if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS) {
-            return gameOver();
-        }
-        // Self collision
-        if (snake.slice(1).some(s => s.x === head.x && s.y === head.y)) {
-            return gameOver();
-        }
+        if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS) return gameOver();
+        if (snake.slice(1).some(s => s.x === head.x && s.y === head.y))    return gameOver();
 
         if (head.x === food.x && head.y === food.y) {
             snake.unshift(head);
@@ -728,7 +722,6 @@
             snake.pop();
             snake.unshift(head);
         }
-
         draw();
     }
 
@@ -742,13 +735,8 @@
     function startGame() {
         if (running && !paused) return;
         hideOverlay();
-
         if (!startedAt) startedAt = new Date();
-
-        if (paused) {
-            paused = false;
-        }
-
+        if (paused) paused = false;
         running = true;
         if (gameInterval) clearInterval(gameInterval);
         gameInterval = setInterval(update, getSpeed());
@@ -771,8 +759,8 @@
     }
 
     function updateUI() {
-        document.getElementById("scoreVal").textContent = score;
-        document.getElementById("bestVal").textContent  = bestScore;
+        document.getElementById("scoreVal").textContent  = score;
+        document.getElementById("bestVal").textContent   = bestScore;
         document.getElementById("lengthVal").textContent = snake.length;
         document.getElementById("lengthBar").style.width = Math.min(snake.length / 30 * 100, 100) + "%";
     }
@@ -831,14 +819,12 @@
     document.getElementById("pauseBtn").addEventListener("click", pauseGame);
     document.getElementById("resetBtn").addEventListener("click", resetGame);
 
-    /* ══ Save Session to DB ══════════════════════════════ */
+    /* ══ Save Session ════════════════════════════════════ */
     function saveSession(result) {
         if (sessionSaved || score === 0) return;
         sessionSaved = true;
 
-        const duration = startedAt
-            ? Math.floor((new Date() - startedAt) / 1000)
-            : 0;
+        const duration = startedAt ? Math.floor((new Date() - startedAt) / 1000) : 0;
 
         fetch('/Game/SaveSession', {
             method: 'POST',
