@@ -84,6 +84,7 @@
     .canvas-wrap {
         position: relative;
         flex-shrink: 0;
+        max-width: 100%;
     }
 
     #gameCanvas {
@@ -92,8 +93,9 @@
         border-radius: 14px;
         background: #080410;
         box-shadow: 0 0 0 1px var(--border), 0 0 50px rgba(168,85,247,0.10), inset 0 0 60px rgba(0,0,0,0.6);
-        max-width: 100%;
+        width: 100%;
         height: auto;
+        max-width: 1200px;
     }
 
     /* Overlay */
@@ -430,7 +432,7 @@
 
     <!-- Canvas -->
     <div class="canvas-wrap">
-        <canvas id="gameCanvas" width="600" height="300"></canvas>
+        <canvas id="gameCanvas" width="1200" height="700"></canvas>
         <div class="canvas-overlay" id="overlay">
             <div class="overlay-icon">💃</div>
             <div class="overlay-title">READY TO RUN?</div>

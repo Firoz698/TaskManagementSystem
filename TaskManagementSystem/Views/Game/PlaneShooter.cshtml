@@ -83,16 +83,15 @@
     /* ── Canvas wrapper ── */
     .canvas-wrap {
         position: relative;
-        flex-shrink: 1;
-        min-width: 0;
-        /* max 420px; on small screens fills viewport */
-        width: min(420px, calc(100vw - 32px));
+        flex-shrink: 0;
+        max-width: 100%;
     }
 
     #gameCanvas {
         display: block;
-        width: 100%; /* scales to wrapper */
-        height: auto; /* keeps 420:560 (3:4) ratio */
+        width: 100%;
+        height: auto;
+        max-width: 1200px;
         border: 2px solid var(--border);
         border-radius: 10px;
         background: #020814;
@@ -421,7 +420,12 @@
         }
 
         .canvas-wrap {
-            width: min(420px, calc(100vw - 20px));
+            width: 100%;
+        }
+
+        #gameCanvas {
+            width: 100% !important;
+            height: auto !important;
         }
 
         .side-panel {
@@ -444,20 +448,12 @@
         }
     }
 </style>
-
-<!-- ══ Page Header ══ -->
-<div class="game-header">
-    <div class="game-title">✈️ PLANE SHOOTER</div>
-    <div class="game-subtitle">← → Move &nbsp;·&nbsp; Space = Shoot</div>
-</div>
-
 <!-- ══ Game Layout ══ -->
 <div class="game-layout">
 
     <!-- Canvas -->
     <div class="canvas-wrap">
-        <!-- logical resolution unchanged: 420×560 -->
-        <canvas id="gameCanvas" width="420" height="560"></canvas>
+        <canvas id="gameCanvas" width="1200" height="700"></canvas>
         <div class="canvas-overlay" id="overlay">
             <div class="overlay-icon">✈️</div>
             <div class="overlay-title">READY TO FLY?</div>
@@ -521,8 +517,8 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx    = canvas.getContext("2d");
         // W/H = logical canvas size (attribute) — never changes
-        const W = canvas.width;   // 420
-        const H = canvas.height;  // 560
+        const W = canvas.width;   // 1200
+        const H = canvas.height;  // 700
 
         /* ── State ── */
         const player = { w:56, h:38, x:0, y:0, speed:6, ml:false, mr:false };
